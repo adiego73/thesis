@@ -8,7 +8,7 @@
 \begin{tabular}{rcc}
 \toprule \emph{Feature} & \textsc{Misuse-based} &
 \textsc{Anomaly-based}\\
-    
+
 \midrule Modeled activity: & Malicious & Normal\\
 Detection method: & Matching & Deviation\\
 Threats detected: & Known & Any\\
@@ -32,7 +32,7 @@ System design: & Easy & Difficult\\
   {0.13, 0.23} /* ... */
 
   b = decode(arg3_value);
-  
+
   if ( !(cd['c'][0] < count('c', b) < cd['c'][1]) ||\
        !(cd['<'][0] < count('<', b) < cd['<'][1]) ||\
        ... || ...)  fire_alert("Anomalous content detected!");
@@ -72,7 +72,7 @@ System design: & Easy & Difficult\\
 
 \begin{figure}[h]
 \centering
-\includegraphics[angle=-90,width=.8\textwidth]{Figures/telnet.pdf}
+%\includegraphics[angle=-90,width=.8\textwidth]{Figures/telnet.pdf}
 \caption{\texttt{telnetd}: distribution of the number of other system calls among two \texttt{execve} system calls (i.e., distance between two consecutive \texttt{execve}).}
 \label{fig:exectelnet}
 \end{figure}
