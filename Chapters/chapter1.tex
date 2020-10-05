@@ -1,0 +1,177 @@
+\chapter{A Chapter of Examples}
+\label{chapter1}
+
+\section{A Table}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{rcc}
+\toprule \emph{Feature} & \textsc{Misuse-based} &
+\textsc{Anomaly-based}\\
+    
+\midrule Modeled activity: & Malicious & Normal\\
+Detection method: & Matching & Deviation\\
+Threats detected: & Known & Any\\
+False negatives: & High & Low\\
+False positives: & Low & High\\
+Maintenance cost: & High & Low\\
+Attack desc.: & Accurate & Absent\\
+System design: & Easy & Difficult\\
+\bottomrule
+\end{tabular}
+\caption[Duality between misuse- and anomaly-based intrusion detection techniques.]{Duality between misuse- and anomaly-based intrusion detection techniques. Note that, an anomaly-based \ac{IDS} can detect ``Any'' threat, under the assumption that an attack always generates a deviation in the modeled activity.}
+\label{tab:misuse-vs-anomaly}
+\end{table}
+
+%------------------------------------------------
+
+\section{Code}
+
+\begin{pseudoc}
+  /* ... */ cd['<'] = {0.1, 0.11} cd['a'] = {0.01, 0.2} cd['b'] =
+  {0.13, 0.23} /* ... */
+
+  b = decode(arg3_value);
+  
+  if ( !(cd['c'][0] < count('c', b) < cd['c'][1]) ||\
+       !(cd['<'][0] < count('<', b) < cd['<'][1]) ||\
+       ... || ...)  fire_alert("Anomalous content detected!");
+  /* ... */
+\end{pseudoc}
+
+%------------------------------------------------
+
+\section{A Sideways Table}
+
+\clearpage
+\begin{sidewaystable}
+\renewcommand{\arraystretch}{1.5} \centering
+\begin{tabular}{rcccccc}
+\toprule \textsc{Approach} & \textsc{Time} & \textsc{Header} &
+\textsc{Payload} & \textsc{Stochastic} & \textsc{Determ.} & \textsc{Clustering}\\
+\midrule \citep{phad} & & $\bullet$ & & & & $\bullet$ \\
+\citep{kruegel:sac2002:anomaly} & & $\bullet$ & $\bullet$ & $\bullet$ & & \\
+\citep{protocolanom} & & $\bullet$ & & $\bullet$ & $\bullet$ & \\
+\citep{ramadas} & & & $\bullet$ & & & $\bullet$ \\
+\citep{rules-payl} & $\bullet$ & & $\bullet$ & & $\bullet$ & \\
+\citep{zanero-savaresi} & & $\bullet$ & $\bullet$ & & & $\bullet$ \\
+\citep{wang:raid2004:payl} & & & $\bullet$ & $\bullet$ & & \\
+\citep{zanero-pattern} & & $\bullet$ & $\bullet$ & & & $\bullet$ \\
+\citep{DBLP:conf/iwia/BolzoniEHZ06} & & $\bullet$ & $\bullet$ & & & $\bullet$ \\
+\citep{wang:raid2006:anagram} & & & $\bullet$ & $\bullet$ & & \\
+\bottomrule
+\end{tabular}
+\caption{Taxonomy of the selected state of the art approaches for network-based anomaly detection.}
+\label{tab:network-sota-taxonomy}
+\end{sidewaystable}
+\clearpage
+
+%------------------------------------------------
+
+\section{A Figure}
+
+\begin{figure}[h]
+\centering
+\includegraphics[angle=-90,width=.8\textwidth]{Figures/telnet.pdf}
+\caption{\texttt{telnetd}: distribution of the number of other system calls among two \texttt{execve} system calls (i.e., distance between two consecutive \texttt{execve}).}
+\label{fig:exectelnet}
+\end{figure}
+
+%------------------------------------------------
+
+\section{Bulleted List}
+
+\begin{itemize}
+\item $O = $``Intrusion'', $\neg O =$``Non-intrusion'';
+\item $A = $``Alert reported'', $\neg A =$``No alert reported''.
+\end{itemize}
+
+%------------------------------------------------
+
+\section{Numbered List}
+
+\begin{enumerate}
+\item $O = $``Intrusion'', $\neg O =$``Non-intrusion'';
+\item $A = $``Alert reported'', $\neg A =$``No alert reported''.
+\end{enumerate}
+
+%------------------------------------------------
+
+\section{A Description}
+
+\begin{description}
+\item[Time] refers to the use of \emph{timestamp} information, extracted from network packets, to model normal packets. For example, normal packets may be modeled by their minimum and maximum inter-arrival time.
+\item[Header] means that the \ac{TCP}\index{TCP} header is decoded and the fields are modeled. For example, normal packets may be modeled by the observed ports range.
+\item[Payload] refers to the use of the payload, either at
+\ac{IP}\index{IP} or \ac{TCP}\index{TCP} layer. For example, normal packets may be modeled by the most frequent byte in the observed payloads.
+\item[Stochastic] means that stochastic techniques are exploited to create models. For example, the model of normal packets may be constructed by estimating the sample mean and variance of certain features (e.g., port number, content length).
+\item[Deterministic] means that certain features are modeled following a deterministic approach. For example, normal packets may be only those containing a specified set of values for the \ac{TTL}\index{TTL} field.
+\item[Clustering] refers to the use of clustering (and subsequent classification) techniques. For instance, payload byte vectors may be compressed using a \ac{SOM} where class of different packets will stimulate neighbor nodes.
+\end{description}
+
+%------------------------------------------------
+
+\section{An Equation}
+
+\begin{equation}
+d_a(i,j) := \left\{
+\begin{array}{lll}
+K_a + \alpha_{a} \delta_{a}(i,j) & \mbox{if the elements are different} \\
+0 & \mbox{otherwise}
+\end{array}
+\right.
+\label{eq:distfunction}
+\end{equation}
+
+%------------------------------------------------
+
+\section{A Theorem, Proposition \& Proof}
+
+\begin{thm}
+$a^2 + b^2 = c^2$
+\end{thm}
+
+\begin{prop}
+$3 + 3 = 6$
+\end{prop}
+
+\begin{proof}
+For any finite set $\{p_1,p_2,...,p_n\}$ of primes, consider $m = p_1p_2...p_n+1$. If $m$ is prime it is not in the set since $m > p_i$ for all $i$. If $m$ is not prime it has a prime divisor $p$. If $p$ is one of the $p_i$ then $p$ is a divisor of $p_1p_2...p_n$ and hence is a divisor of $(m - p_1p_2...p_n) = 1$, which is impossible; so $p$ is not in the set. Hence a finite set $\{p_1,p_2,...,p_n\}$ cannot be the collection of all primes.
+\end{proof}
+
+%------------------------------------------------
+
+\section{Definition}
+
+\begin{definition}[Anomaly-based \ac{IDS}]
+An \emph{anomaly-based \ac{IDS}} is a type of \ac{IDS} that generate alerts $\mathbb{A}$ by relying on normal activity profiles.
+\end{definition}
+
+%------------------------------------------------
+
+\section{A Remark}
+
+\begin{rem}
+Although the network stack implementation may vary from system to system (e.g., \textsf{Windows} and \textsf{Cisco} platforms have different implementation of \ac{TCP}).
+\end{rem}
+
+%------------------------------------------------
+
+\section{An Example}
+
+\begin{example}[Misuse \emph{vs.} Anomaly]\label{ex:misuse-vs-anomaly}
+A misuse-based system $M$ and an anomaly-based system $A$ process the same log containing a full dump of the system calls invoked by the kernel of an audited machine. Log entries are in the form:
+
+\begin{center}\small
+\begin{verbatim} <function_name>(<arg1_value>, <arg2_value>, ...)
+\end{verbatim}
+\end{center}
+\end{example}
+
+%------------------------------------------------
+
+\section{Note}
+
+\begin{note}[Inspection layer]\label{note:network-stack-standardized}
+Although the network stack implementation may vary from system to system (e.g., \textsf{Windows} and \textsf{Cisco} platforms have different implementation of \ac{TCP}), it is important to underline that the notion of IP, TCP, HTTP \emph{packet} is well defined in a system-agnostic way, while the notion of \emph{operating system activity} is rather vague and by no means standardized.
+\end{note}
