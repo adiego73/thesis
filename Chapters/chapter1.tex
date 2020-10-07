@@ -1,177 +1,65 @@
-\chapter{A Chapter of Examples}
+\chapter{Theoretical Background}
 \label{chapter1}
 
-\section{A Table}
+\section{Robot Operating System}
+\label{chapter1:ros}
+The \ac{ROS} \nocite{ros-website} is an open source middleware that provides inter-process communication through a message passing mechanism. It is, also, a collection of libraries, tools and conventions with the aim of simplify the development of software for robots. In this sense, one of the main components of the framework are nodes which encapsulate processes and/or algorithms.
 
-\begin{table}[h]
-\centering
-\begin{tabular}{rcc}
-\toprule \emph{Feature} & \textsc{Misuse-based} &
-\textsc{Anomaly-based}\\
+\subsection{Nodes}
+\label{chapter1:ros:nodes}
+Nodes are processes that perform some computation and communicate between them using a publisher/subscriber infrastructure based on topics. A node subscribes to a particular topic, and it will receive messages of that type from a publisher node. This way, publisher is hid to the subscriber, reducing the coupling between them. The advantage of this mechanism is that nodes can be developed separately once the message structure is defined, forcing developers to implement clear interfaces for communication by using a message \ac{IDL}. Moreover, this enables a modular and distributed development of the robotic system, while providing some fault tolerance and reduced code complexity.
 
-\midrule Modeled activity: & Malicious & Normal\\
-Detection method: & Matching & Deviation\\
-Threats detected: & Known & Any\\
-False negatives: & High & Low\\
-False positives: & Low & High\\
-Maintenance cost: & High & Low\\
-Attack desc.: & Accurate & Absent\\
-System design: & Easy & Difficult\\
-\bottomrule
-\end{tabular}
-\caption[Duality between misuse- and anomaly-based intrusion detection techniques.]{Duality between misuse- and anomaly-based intrusion detection techniques. Note that, an anomaly-based \ac{IDS} can detect ``Any'' threat, under the assumption that an attack always generates a deviation in the modeled activity.}
-\label{tab:misuse-vs-anomaly}
-\end{table}
+\subsection{Topics}
+\label{chapter1:ros:topics}
+As mentioned before, communication between nodes is done via a publisher/subscriber architecture based on topics, which are named buses over which messages are exchanged. A node that generates data, publishes it over a topic, and this information is consumed by those nodes subscribed to that topic. There can be several publishers (as well as subscribers) for a topic. The transport protocol used for exchanging messages is defined at runtime and can be of two types: TCPROS or UDPROS. The description of these protocols is beyond the scope of this document and the reader is invited to read the ROS documentation for detailed information.
 
-%------------------------------------------------
+\subsection{Services}
+\label{chapter1:ros:services}
+As well as topics, services are a way to communicate nodes. The difference is that topics are an asynchronous way of communication, while services are synchronous. This is a key difference, because nodes decide when to trigger a service and so, services are used to retrieve specific information or to ask another node to do something out of caller's node scope.
 
-\section{Code}
 
-\begin{pseudoc}
-  /* ... */ cd['<'] = {0.1, 0.11} cd['a'] = {0.01, 0.2} cd['b'] =
-  {0.13, 0.23} /* ... */
+\subsection{Tools}
+\label{chapter1:ros:tools}
+Regarding the tools provided by ROS, one that is be crucial for debugging and/or experimentation is the bag recording and playback. Since the message passing infrastructure is anonymous (meaning that nodes communicate between each others without knowing which node sent or received a message) it is possible to record the messages during a period of time, without taking into consideration which node sent a message and which node received it. This recorder bag is useful for debugging because it can be played back, hence reproducing a previous experiment. Also, it can be used for development of new nodes that depend on the messages contained in the bag.\\
 
-  b = decode(arg3_value);
+Another useful tool provided is \ac{RViz}, a 3D visualization tool. With this tool it is possible to see the robot, orientation, reference frames, covariance matrices, etc. In addition, it is possible to draw lines, arrows, text and others, onto the environment in order to see useful information that cannot be extracted from messages.
 
-  if ( !(cd['c'][0] < count('c', b) < cd['c'][1]) ||\
-       !(cd['<'][0] < count('<', b) < cd['<'][1]) ||\
-       ... || ...)  fire_alert("Anomalous content detected!");
-  /* ... */
-\end{pseudoc}
-
-%------------------------------------------------
-
-\section{A Sideways Table}
-
-\clearpage
-\begin{sidewaystable}
-\renewcommand{\arraystretch}{1.5} \centering
-\begin{tabular}{rcccccc}
-\toprule \textsc{Approach} & \textsc{Time} & \textsc{Header} &
-\textsc{Payload} & \textsc{Stochastic} & \textsc{Determ.} & \textsc{Clustering}\\
-\midrule \citep{phad} & & $\bullet$ & & & & $\bullet$ \\
-\citep{kruegel:sac2002:anomaly} & & $\bullet$ & $\bullet$ & $\bullet$ & & \\
-\citep{protocolanom} & & $\bullet$ & & $\bullet$ & $\bullet$ & \\
-\citep{ramadas} & & & $\bullet$ & & & $\bullet$ \\
-\citep{rules-payl} & $\bullet$ & & $\bullet$ & & $\bullet$ & \\
-\citep{zanero-savaresi} & & $\bullet$ & $\bullet$ & & & $\bullet$ \\
-\citep{wang:raid2004:payl} & & & $\bullet$ & $\bullet$ & & \\
-\citep{zanero-pattern} & & $\bullet$ & $\bullet$ & & & $\bullet$ \\
-\citep{DBLP:conf/iwia/BolzoniEHZ06} & & $\bullet$ & $\bullet$ & & & $\bullet$ \\
-\citep{wang:raid2006:anagram} & & & $\bullet$ & $\bullet$ & & \\
-\bottomrule
-\end{tabular}
-\caption{Taxonomy of the selected state of the art approaches for network-based anomaly detection.}
-\label{tab:network-sota-taxonomy}
-\end{sidewaystable}
-\clearpage
-
-%------------------------------------------------
-
-\section{A Figure}
-
-\begin{figure}[h]
-\centering
-%\includegraphics[angle=-90,width=.8\textwidth]{Figures/telnet.pdf}
-\caption{\texttt{telnetd}: distribution of the number of other system calls among two \texttt{execve} system calls (i.e., distance between two consecutive \texttt{execve}).}
-\label{fig:exectelnet}
-\end{figure}
-
-%------------------------------------------------
-
-\section{Bulleted List}
-
-\begin{itemize}
-\item $O = $``Intrusion'', $\neg O =$``Non-intrusion'';
-\item $A = $``Alert reported'', $\neg A =$``No alert reported''.
-\end{itemize}
-
-%------------------------------------------------
-
-\section{Numbered List}
-
+\section{Kalman Filter}
+\nocite{prob-robotics}
+\ac{KF} is a technique for filtering and prediction in \emph{linear Gaussian systems} and applicable only to continuous states. It assures that the posteriors are Gaussian if the Markov assumption is hold, in addition to three conditions. The Markov assumption states that the past and future data are independent if one knows the current state; the other three conditions are the following:
 \begin{enumerate}
-\item $O = $``Intrusion'', $\neg O =$``Non-intrusion'';
-\item $A = $``Alert reported'', $\neg A =$``No alert reported''.
+    \item{The state transition probability $p\left( x_t | u_t, x_{t-1}\right)$ must be a linear function in its arguments. This is guaranteed by $ x_t = A_t x_{t-1} + B_t u_t + \epsilon_t $. Here, $x_t$ and $x_{t-1}$ are the state vectors, of size $n$, and $u_t$ represents the control vector, of size $m$, at time $t$; $A_t$ and $B_t$ are matrices of size $n \times n$ and $n\times m$ respectively. In this way, the state transition function becomes linear in its arguments, hence KF assumes a linear system dynamics. \\\\ $\epsilon_t$ represents the uncertainty introduced by the state transition, and it is a Gaussian random variable with zero mean and $R_t$ covariance.}
+    \item{The measurement probability $p\left(z_t | x_t\right)$ must be linear in its arguments. This is guaranteed by $z_t = C_t x_t + \delta_t$, where $z_t$ represents the measurement vector of size $k$, $C_t$ is a matrix of size $k \times n$ and $\delta_t$ is a Gaussian noise with zero mean and $Q_t$ covariance.}
+    \item{The initial belief should be normally distributed.}
 \end{enumerate}
+Given these three conditions, we are guaranteed that the posterior probability is Gaussian. \\
 
-%------------------------------------------------
+\begin{algorithm}[h]
+    \BlankLine
+    \KwIn{$\mu_{t-1}$, $\Sigma_{t-1}$, $u_t$, $z_t$}
+    \BlankLine
+    $\hat\mu_t = A_t \mu_{t-1} + B_t u_t$ \\
+    $\hat\Sigma_t = A_t \Sigma_{t-1} A_t^T + R_t$ \\
+    \BlankLine
+    $K_t = \hat\Sigma_t C_t^T \left(C_t \hat\Sigma_t C_t^T + Q_t\right)^{-1}$ \\
+    $\mu_t = \hat\mu_t + K_t \left(z_t - C_t \hat\mu_t \right) $ \\
+    $\Sigma_t = (I - K_t C_t) \hat\Sigma_t$ \\
+    \BlankLine
+    \Return{$\mu_t$, $\Sigma_t$}
+    \BlankLine
 
-\section{A Description}
+    \caption{Kalman Filter algorithm}
+    \label{chapter1:kf:algorithm1}
+\end{algorithm}
 
-\begin{description}
-\item[Time] refers to the use of \emph{timestamp} information, extracted from network packets, to model normal packets. For example, normal packets may be modeled by their minimum and maximum inter-arrival time.
-\item[Header] means that the \ac{TCP}\index{TCP} header is decoded and the fields are modeled. For example, normal packets may be modeled by the observed ports range.
-\item[Payload] refers to the use of the payload, either at
-\ac{IP}\index{IP} or \ac{TCP}\index{TCP} layer. For example, normal packets may be modeled by the most frequent byte in the observed payloads.
-\item[Stochastic] means that stochastic techniques are exploited to create models. For example, the model of normal packets may be constructed by estimating the sample mean and variance of certain features (e.g., port number, content length).
-\item[Deterministic] means that certain features are modeled following a deterministic approach. For example, normal packets may be only those containing a specified set of values for the \ac{TTL}\index{TTL} field.
-\item[Clustering] refers to the use of clustering (and subsequent classification) techniques. For instance, payload byte vectors may be compressed using a \ac{SOM} where class of different packets will stimulate neighbor nodes.
-\end{description}
+The KF algorithm's input is the belief at time $t-1$, represented by its mean ($\mu_{t-1}$) and its covariance ($\Sigma_{t-1}$), in addition to the control vector ($u_t$) and the observations ($z_t$). As a result, it returns the current belief characterized by its mean $\mu_t$ and covariance $\Sigma_t$. \\
 
-%------------------------------------------------
+The first step in the algorithm (lines 1 and 2), represent the prediction step. It calculates the current belief before incorporating the observations, but after adding the control vector. The estimated belief is characterized by its mean, $\hat\mu_t$ , and its covariance $\hat\Sigma_t$.\\
 
-\section{An Equation}
+The second step (from line 3 to 5) starts by calculating $K_t$, the Kalman gain, which specifies the degree in which the observation is incorporated to the new state estimate. Following, at line 4, the new mean is estimated by means of the Kalman gain and the \emph{innovation}, which is the difference between the observation $z_t$ and the expected measurement $C_t \hat\mu_t$. Finally, the new covariance is calculated. \\
 
-\begin{equation}
-d_a(i,j) := \left\{
-\begin{array}{lll}
-K_a + \alpha_{a} \delta_{a}(i,j) & \mbox{if the elements are different} \\
-0 & \mbox{otherwise}
-\end{array}
-\right.
-\label{eq:distfunction}
-\end{equation}
+\subsection{Extended Kalman Filter}
 
-%------------------------------------------------
+\section{Simultaneous Localization and Mapping}
 
-\section{A Theorem, Proposition \& Proof}
-
-\begin{thm}
-$a^2 + b^2 = c^2$
-\end{thm}
-
-\begin{prop}
-$3 + 3 = 6$
-\end{prop}
-
-\begin{proof}
-For any finite set $\{p_1,p_2,...,p_n\}$ of primes, consider $m = p_1p_2...p_n+1$. If $m$ is prime it is not in the set since $m > p_i$ for all $i$. If $m$ is not prime it has a prime divisor $p$. If $p$ is one of the $p_i$ then $p$ is a divisor of $p_1p_2...p_n$ and hence is a divisor of $(m - p_1p_2...p_n) = 1$, which is impossible; so $p$ is not in the set. Hence a finite set $\{p_1,p_2,...,p_n\}$ cannot be the collection of all primes.
-\end{proof}
-
-%------------------------------------------------
-
-\section{Definition}
-
-\begin{definition}[Anomaly-based \ac{IDS}]
-An \emph{anomaly-based \ac{IDS}} is a type of \ac{IDS} that generate alerts $\mathbb{A}$ by relying on normal activity profiles.
-\end{definition}
-
-%------------------------------------------------
-
-\section{A Remark}
-
-\begin{rem}
-Although the network stack implementation may vary from system to system (e.g., \textsf{Windows} and \textsf{Cisco} platforms have different implementation of \ac{TCP}).
-\end{rem}
-
-%------------------------------------------------
-
-\section{An Example}
-
-\begin{example}[Misuse \emph{vs.} Anomaly]\label{ex:misuse-vs-anomaly}
-A misuse-based system $M$ and an anomaly-based system $A$ process the same log containing a full dump of the system calls invoked by the kernel of an audited machine. Log entries are in the form:
-
-\begin{center}\small
-\begin{verbatim} <function_name>(<arg1_value>, <arg2_value>, ...)
-\end{verbatim}
-\end{center}
-\end{example}
-
-%------------------------------------------------
-
-\section{Note}
-
-\begin{note}[Inspection layer]\label{note:network-stack-standardized}
-Although the network stack implementation may vary from system to system (e.g., \textsf{Windows} and \textsf{Cisco} platforms have different implementation of \ac{TCP}), it is important to underline that the notion of IP, TCP, HTTP \emph{packet} is well defined in a system-agnostic way, while the notion of \emph{operating system activity} is rather vague and by no means standardized.
-\end{note}
+\subsection{EKF-SLAM}
