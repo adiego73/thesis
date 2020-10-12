@@ -1,20 +1,20 @@
 \chapter{Theoretical Background}
-\label{chapter1}
+\label{ch:chapter1}
 
 \section{Robot Operating System}
-\label{chapter1:ros}
+\label{sec:chapter1:ros}
 The \ac{ROS} \nocite{ros-website} is an open source middleware that provides inter-process communication through a message passing mechanism. It is, also, a collection of libraries, tools and conventions with the aim of simplify the development of software for robots. In this sense, one of the main components of the framework are nodes which encapsulate processes and/or algorithms.
 
 \subsection{Nodes}
-\label{chapter1:ros:nodes}
+\label{subsec:chapter1:ros:nodes}
 Nodes are processes that perform some computation and communicate between them using a publisher/subscriber infrastructure based on topics. A node subscribes to a particular topic, and it will receive messages of that type from a publisher node. This way, publisher is hid to the subscriber, reducing the coupling between them. The advantage of this mechanism is that nodes can be developed separately once the message structure is defined, forcing developers to implement clear interfaces for communication by using a message \ac{IDL}. Moreover, this enables a modular and distributed development of the robotic system, while providing some fault tolerance and reduced code complexity.
 
 \subsection{Topics}
-\label{chapter1:ros:topics}
+\label{subsec:chapter1:ros:topics}
 As mentioned before, communication between nodes is done via a publisher/subscriber architecture based on topics, which are named buses over which messages are exchanged. A node that generates data, publishes it over a topic, and this information is consumed by those nodes subscribed to that topic. There can be several publishers (as well as subscribers) for a topic. The transport protocol used for exchanging messages is defined at runtime and can be of two types: TCPROS or UDPROS. The description of these protocols is beyond the scope of this document and the reader is invited to read the ROS documentation for detailed information.
 
 \subsection{Services}
-\label{chapter1:ros:services}
+\label{subsec:chapter1:ros:services}
 As well as topics, services are a way to communicate nodes. The difference is that topics are an asynchronous way of communication, while services are synchronous. This is a key difference, because nodes decide when to trigger a service and so, services are used to retrieve specific information or to ask another node to do something out of caller's node scope.
 
 
@@ -25,16 +25,21 @@ Regarding the tools provided by ROS, one that is be crucial for debugging and/or
 Another useful tool provided is \ac{RViz}, a 3D visualization tool. With this tool it is possible to see the robot, orientation, reference frames, covariance matrices, etc. In addition, it is possible to draw lines, arrows, text and others, onto the environment in order to see useful information that cannot be extracted from messages.
 
 \section{Kalman Filter}
-\nocite{prob-robotics}
-\ac{KF} is a technique for filtering and prediction in \emph{linear Gaussian systems} and applicable only to continuous states. It assures that the posteriors are Gaussian if the Markov assumption is hold, in addition to three conditions. The Markov assumption states that the past and future data are independent if one knows the current state; the other three conditions are the following:
+\label{sec:chapter1:kf}
+\nocite{intro-robotics}
+
+\ac{KF}, was introduced by \cite{kalman}, and provides a recursive method for estimating the state of a dynamic system with presence of noise. It is a technique for filtering and prediction in \emph{linear Gaussian systems} and applicable only to continuous states. One of its key features is that it simultaneously maintains estimates of the state vector and the estimate error covariance. It assures that the posteriors are Gaussian if the Markov assumption is hold, in addition to three conditions. The Markov assumption states that the past and future data are independent if one knows the current state; the other three conditions are the following:
 \begin{enumerate}
     \item{The state transition probability $p\left( x_t | u_t, x_{t-1}\right)$ must be a linear function in its arguments. This is guaranteed by $ x_t = A_t x_{t-1} + B_t u_t + \epsilon_t $. Here, $x_t$ and $x_{t-1}$ are the state vectors, of size $n$, and $u_t$ represents the control vector, of size $m$, at time $t$; $A_t$ and $B_t$ are matrices of size $n \times n$ and $n\times m$ respectively. In this way, the state transition function becomes linear in its arguments, hence KF assumes a linear system dynamics. \\\\ $\epsilon_t$ represents the uncertainty introduced by the state transition, and it is a Gaussian random variable with zero mean and $R_t$ covariance.}
     \item{The measurement probability $p\left(z_t | x_t\right)$ must be linear in its arguments. This is guaranteed by $z_t = C_t x_t + \delta_t$, where $z_t$ represents the measurement vector of size $k$, $C_t$ is a matrix of size $k \times n$ and $\delta_t$ is a Gaussian noise with zero mean and $Q_t$ covariance.}
     \item{The initial belief should be normally distributed.}
 \end{enumerate}
-Given these three conditions, we are guaranteed that the posterior probability is Gaussian. \\
+Given these three conditions, we are guaranteed that the posterior probability is Gaussian.
 
 \begin{algorithm}[h]
+    \caption{Kalman Filter algorithm}
+    \label{alg:chapter1:kf}
+
     \BlankLine
     \KwIn{$\mu_{t-1}$, $\Sigma_{t-1}$, $u_t$, $z_t$}
     \BlankLine
@@ -46,20 +51,162 @@ Given these three conditions, we are guaranteed that the posterior probability i
     $\Sigma_t = (I - K_t C_t) \hat\Sigma_t$ \\
     \BlankLine
     \Return{$\mu_t$, $\Sigma_t$}
-    \BlankLine
-
-    \caption{Kalman Filter algorithm}
-    \label{chapter1:kf:algorithm1}
 \end{algorithm}
 
-The KF algorithm's input is the belief at time $t-1$, represented by its mean ($\mu_{t-1}$) and its covariance ($\Sigma_{t-1}$), in addition to the control vector ($u_t$) and the observations ($z_t$). As a result, it returns the current belief characterized by its mean $\mu_t$ and covariance $\Sigma_t$. \\
+The KF can be seen in Algorithm~\ref{alg:chapter1:kf} and its input is the belief at time $t-1$, represented by its mean ($\mu_{t-1}$) and its covariance ($\Sigma_{t-1}$), in addition to the control vector ($u_t$) and the observations ($z_t$). As a result, it returns the current belief characterized by its mean $\mu_t$ and covariance $\Sigma_t$. \\
 
 The first step in the algorithm (lines 1 and 2), represent the prediction step. It calculates the current belief before incorporating the observations, but after adding the control vector. The estimated belief is characterized by its mean, $\hat\mu_t$ , and its covariance $\hat\Sigma_t$.\\
 
-The second step (from line 3 to 5) starts by calculating $K_t$, the Kalman gain, which specifies the degree in which the observation is incorporated to the new state estimate. Following, at line 4, the new mean is estimated by means of the Kalman gain and the \emph{innovation}, which is the difference between the observation $z_t$ and the expected measurement $C_t \hat\mu_t$. Finally, the new covariance is calculated. \\
+The second step (from line 3 to 5) starts by calculating $K_t$, the Kalman gain, which specifies the degree in which the observation is incorporated to the new state estimate. $K_t$ can be seen as the weighting factor that weights the relationship between the accuracy of the predicted state estimate and the observation noise. When $K_t$ is large, the observations have more importance in the final estimate; while if $K_t$ is small, the observations do not have much importance in the correction step. Following, at line 4, the new mean is estimated by means of the Kalman gain and the \emph{innovation}, which is the difference between the observation $z_t$ and the expected measurement $C_t \hat\mu_t$. Finally, the new covariance is calculated.
 
 \subsection{Extended Kalman Filter}
+\label{subsec:chapter1:kf:ekf}
+
+The linearity conditions that make the KF to work are, in some cases, far from reality: state transition functions and measurements are rarely linear in practice. The \ac{EKF} works through a process of linearization, where nonlinear state transition and observation functions are approximated by a Taylor series expansion. \\
+
+\begin{figure}[h]
+    \centering
+    \includegraphics{Figures/fig1-kf-ekf.png}
+    \caption[Linear and nonlinear transformation of a Gaussian random variable]{Linear \textbf{(a)} and nonlinear \textbf{(b)} transformation of a Gaussian random variable. The lower right plot shows the density function of the random variable. The upper right plot shows the transformation of the random variable. The upper left plot shows the resulting density function. \cite{prob-robotics}}
+    \label{fig:chapter1:kf:ekf:cmp-kf-ekf}
+\end{figure}
+
+The Figure~\ref{fig:chapter1:kf:ekf:cmp-kf-ekf}a shows the linear transformation of a random Gaussian variable, whose density function is $\mathcal{N}\left(x; \mu, \sigma^2 \right)$. Assuming that the random variable is transformed using a linear function $y = ax + b$, the resulting random variable will be Gaussian with mean $a\mu + b$ and variance $a^2 \sigma^2$.\\
+
+However, as shown in Figure~\ref{fig:chapter1:kf:ekf:cmp-kf-ekf}b, this does not happen if the transformation is not linear. In this case, assuming the original random variable is transformed using a nonlinear function $g$, the density of the resulting random variable is not Gaussian anymore.\\
+
+The state transition probability and observation probabilities are ruled by nonlinear functions $g$ and $h$ respectively. Matrices $A$ and $B$ are replaced by function $g\left(u_t, x_{t-1}\right)$ and matrix $H$ is replaced by function $h \left(x_t\right)$, making the belief not Gaussian. This is solved in EKF by approximating to the true belief, not the exact one as happens with linear KF. The approximation is done using a linearization method that approximates the nonlinear function by a linear function that is tangent to it, thereby maintaining the Gaussian properties of the posterior belief. \\
+
+The used method is the first order Taylor expansion, which constructs a linear approximation of a function $g$ from $g$'s value and slope, which is given by
+\begin{equation}
+    g' \left(u_t, x_{t-1}\right) = \frac{\partial g\left(u_t, x_{t-1}\right)}{\partial x_{t-1}}
+    \label{eq:chapter1:kf:ekf:g-derivative}
+\end{equation}
+
+ Since $g$ depends on the control variable $u$ and the state $x$, we need to define a value for $x$, and the logical choice is the mean of the posterior in the previous time step: $\mu_{t-1}$. This way
+ \begin{equation}
+    g \left(u_t, x_{t-1}\right) = g \left(u_t, \mu_{t-1}\right) + g' \left(u_t, \mu_{t-1}\right)\left(x_{t-1} - \mu_{t-1}\right)
+    \label{eq:chapter1:kf:ekf:g-mean-cov}
+ \end{equation}
+where $g'$ is the \emph{Jacobian} of $g$, usually expressed as $G_t$, and it depends on $u_t$ and $\mu_{t-1}$, hence it changes through time.\\
+
+The same linearization is applied to the observation function $h$:
+\begin{equation}
+    h\left(x_t\right) = h\left(\hat\mu_t\right) + h'\left(\hat\mu_t\right)\left(x_t - \hat\mu_t\right)
+\end{equation}
+\begin{equation}
+        h'\left(\hat\mu_t\right) = \frac{\partial h\left(x_t\right)}{\partial x_t}
+\end{equation}
+where $h'$ is the Jacobian of $h$, usually expressed as $H_t$. In this case, the linearization is done around $\hat\mu_t$, which is the state estimate just before computing $h$.\\
+
+\begin{figure}[h]
+    \centering
+    \includegraphics{Figures/fig2-ekf-linearization.png}
+    \caption[Linearization applied in EKF]{Linearization applied in EKF. In this case, the nonlinear function $g$ is approximated using first order Taylor expansion, that is a linear function tangent to $g$ at the mean of the original density function. The linearization is not perfect, so it adds an error, depicted in the upper left plot. This error is the difference between the dashed line and the solid line. \cite{prob-robotics}}
+    \label{fig:chapter1:kf:ekf:ekf-linearization}
+\end{figure}
+
+The Figure~\ref{fig:chapter1:kf:ekf:ekf-linearization} depicts the approximation of $g$ by a linear function that is tangent around its mean. The resulting density function is shown in the upper left plot with a dashed line, that is similar to the original density function.\\
+
+\begin{algorithm}[h]
+    \caption{Extended Kalman Filter algorithm}
+    \label{alg:chapter1:kf:ekf}
+
+    \BlankLine
+    \KwIn{$\mu_{t-1}$, $\Sigma_{t-1}$, $u_t$, $z_t$}
+    \BlankLine
+    $\hat\mu_t = g \left(u_t, \mu_{t-1}\right)$ \\
+    $\hat\Sigma_t = G_t \Sigma_{t-1} G_t^T + R_t$ \\
+    \BlankLine
+    $K_t = \hat\Sigma_t H_t^T \left(H_t \hat\Sigma_t H_t^T + Q_t\right)^{-1}$ \\
+    $\mu_t = \hat\mu_t + K_t \left(z_t - h \left(\hat\mu_t\right) \right) $ \\
+    $\Sigma_t = (I - K_t H_t) \hat\Sigma_t$ \\
+    \BlankLine
+    \Return{$\mu_t$, $\Sigma_t$}
+\end{algorithm}
+
+The EKF algorithm can be seen in Algorithm~\ref{alg:chapter1:kf:ekf}, and it is similar to Algorithm~\ref{alg:chapter1:kf}. The difference lies in the usage of the nonlinear functions $g$ and $h$ and their Jacobians, $G_t$ and $H_t$ respectively.
 
 \section{Simultaneous Localization and Mapping}
+\label{sec:chapter1:slam}
+Among all the problems faced by autonomous mobile robots, two of them are relevant for this work: localization and mapping. The former one, is related to the problem of where the robot is, while the later is related to building a map of the environment. However, to accurately localize itself the robot needs a map of the environment in which it is immersed in, and, in order to build a map, it needs to know where it currently is, giving us a chicken-egg situation. Hence, the \ac{SLAM} problem appears when the robot does not know the map nor its localization, while measurements and controls are given.\\
+
+The problem of building a map can be summarized in the following steps:
+\begin{enumerate}
+    \item{The robot sense the environment using its sensors}
+    \item{It creates a representation of the acquired data}
+    \item{It integrates the processed sensor data with the previously learned map structure}
+\end{enumerate}
+
+While this process can be done by manually moving the robot around the environment, it is more challenging to build the map while the robot is moving autonomously. \\
+
+\nocite{intro-aut-mobile-robots}
+On the other hand, assuming that the robot already knows the map, the localization problem could be trivial if no noise is present at all. The sensors, wheel encoders, different kinds of terrain, battery life, etc, all of these can make the robot to increase its uncertainty related to where it is. As robot moves around the environment it uses its sensors to estimate its position, increasing its uncertainty regarding its position relative to the map. At some point, the robot will "see" a known landmark or feature in the environment, correcting its position while reducing the uncertainty.\\
+
+\begin{figure}[h]
+    \centering
+    \includegraphics{Figures/fig3-slam.png}
+    \caption[Example of SLAM problem]{At the beginning \textbf{(a)} the robot has low uncertainty regarding its position. As it moves around the environment its uncertainty grows \textbf{(b), (c), (d)}, until it sees a known marker \textbf{(e)}, making the position uncertainty to shrink. \cite{intro-aut-mobile-robots}}
+    \label{fig:chapter1:slam}
+\end{figure}
+
+The localization and mapping problems can be solved together by using a SLAM technique, with which the robot will build the map while localizing itself in it. An example of this problem can be seen in Figure~\ref{fig:chapter1:slam}, where a robot moves around the environment and sees some features or landmarks. The uncertainty regarding its position is low when it starts, and keeps growing while it moves around. At the end, it sees a known landmark ($m_0$) making the uncertainty to shrink. As can be seen in the figure, the robot adds new landmarks to the map ($m_1$ and $m_2$) with their corresponding uncertainty, and when the robot sees the first landmark, not only its own uncertainty decreases, but also the two new landmarks' uncertainty. In this way, the robot's position is correlated with the observations' position estimates.\\
+
+The idea of the SLAM problem is to estimate a posterior belief that involves not only the robot pose, but also the map: $p\left(x_t, m | z_{1:t}, u_{1:t}\right)$, where $x_t$ is the robot's pose at time $t$, $m$ is the map, $z_{1:t}$ are the measurements, and $u_{1:t}$ are the controls given to the robot.
 
 \subsection{EKF-SLAM}
+\label{subsec:chapter1:slam:ekfslam}
+The SLAM problem can be addressed, between others, using an EKF approach. The algorithm proceeds in the same way as shown in Section~\ref{subsec:chapter1:kf:ekf}, being $\mu$ a state vector containing the information about the robot pose ($q_r$) and the landmarks' pose ($m_i$):
+\begin{equation}
+    \mu = \begin{bmatrix}
+        q_r & m_0 & \dots & m_{n-1}
+    \end{bmatrix}^T
+\end{equation}
+
+One thing that worth mentioning is that in EKF-SLAM maps are \emph{feature based}, meaning that the features or landmarks are assumed to be points in the space: if the robot sees, for example, a chair, it will store a point that represents the chair in space. Also, as explained before, it assumes Gaussian noise for the robot motion and observations.\\
+
+The EKF-SLAM algorithm estimates the robot's pose in addition to all encountered landmarks' poses along its way. Thus, there is a correspondence between robot's pose and landmarks, and that is why it is necessary to include the landmarks information into the state vector. Hence, the algorithm estimates the posterior $p\left(\mu_t | z_t, u_t\right)$.\\
+
+\begin{algorithm}[h]
+    \caption{EKF-SLAM algorithm}
+    \label{alg:chapter1:slam:ekfslam}
+    \BlankLine
+    \KwIn{$\mu_{t-1}$, $\Sigma_{t-1}$, $u_t$, $z_t$}
+    \BlankLine
+    $\hat\mu_t = g\left(\mu_{t-1}, u_t\right)$\;
+    $G_t = computeJacobian\left(g\right)$\;
+    $\hat\Sigma_t = G_t \Sigma_{t-1} G_t^T + R_t$\;
+    \BlankLine
+    \ForEach{landmark observation $z_t^i$}{
+        \BlankLine
+        \If{landmark $i$ has not being seen before}{
+            $addLandmarkToStateVector\left( z_t^i \right)$
+        }
+        \BlankLine
+        $H_t^i = computeJacobian\left( h^i \right)$\;
+        $S = H_t^i \hat\Sigma_t H_t^{iT} + Q_t$\;
+        $K_t^i = \hat\Sigma_t H_t^{iT} S^{-1}$ \;
+        $\mu_t = \hat\mu_t + K_t^i \left( z_t^i - h^i \left( \hat\mu_t \right) \right) $ \;
+        $\Sigma_t = (I - K_t^i H_t^i) \hat\Sigma_t$ \;
+    }
+    \BlankLine
+    \Return{$\mu_t$, $\Sigma_t$}
+\end{algorithm}
+
+Assuming the robot's pose is composed by $x$, $y$, $\theta$ , the markers' pose is composed by $x$, $y$, and there are $N$ markers, the state vector $\mu$ will have a length of $3 \times 2N$, and the covariance matrix $\Sigma$ will have a size of $(3 \times 2N) \times (3 \times 2N)$.\\
+
+The algorithm can be seen in Algorithm~\ref{alg:chapter1:slam:ekfslam}. From lines 1 to 3, the algorithm computes the state vector and covariance matrix updates; the function $computeJacobian$ computes, indeed, the Jacobian matrix for the motion model $g$, the resulting matrix has the same size as the covariance matrix and has the following characteristic:
+\begin{align*}
+   G_t &= \begin{bmatrix}
+        G_r & \textbf{0} \\
+        \textbf{0} & \textbf{0}
+    \end{bmatrix}\\
+    G_r &= \begin{bmatrix}
+    \frac{\partial x'}{\partial \mu_{t-1,x}} & \frac{\partial x'}{\partial \mu_{t-1,y}} & \frac{\partial x'}{\partial \mu_{t-1,\theta}}\\
+    \frac{\partial y'}{\partial \mu_{t-1,x}} & \frac{\partial y'}{\partial \mu_{t-1,y}} & \frac{\partial y'}{\partial \mu_{t-1,\theta}}\\
+    \frac{\partial \theta'}{\partial \mu_{t-1,x}} & \frac{\partial \theta'}{\partial \mu_{t-1,y}} & \frac{\partial \theta'}{\partial \mu_{t-1,\theta}}
+\end{bmatrix}
+\end{align*}
+where $\frac{\partial x'}{\partial \mu_{t-1,x}}$ is the derivative of $g$ along $x'$ dimension, taken with respect to $x$ at $\mu_{t-1}$. At line 4, it iterates through every observation $z_t$. If the landmark is not already in the state vector, at line 6 it is added by projecting the observation and calculating the landmark's pose, adding two new elements to the state vector and two new more columns and rows to the covariance matrix. At line 7 the Jacobian of the observation model is computed, while at line 9 the Kalman gain is computed. At line 10, the new state vector is estimated, and the gain propagates the information through all the state vector, updating not only the robot's pose, but also the landmarks' poses. \\
+
+The fact that the Kalman gain is not sparse is important, because observing a landmark does not just improves the estimate of that landmark's pose, but also all the others, along with the robot's pose. This effect can be seen in Figure~\ref{fig:chapter1:slam}, with an additional explanation: most of the uncertainty of the landmarks' poses is caused by the robot's own uncertainty, so the location of those previously seen landmarks are correlated. When the robot gains information about its own pose, this information is propagated to the landmarks, and as result it improves the localization of other landmarks in the map.
