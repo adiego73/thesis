@@ -17,6 +17,9 @@
 \usepackage[en-GB]{datetime2}
 \usepackage[linesnumbered,ruled,vlined,algochapter]{algorithm2e}
 \usepackage{float}
+\usepackage{multirow}
+\usepackage[shortlabels]{enumitem}
+\usepackage[super]{nth}
 
 \hypersetup{colorlinks, breaklinks, linkcolor=black,citecolor=black,filecolor=black,urlcolor=black} % Set up hyperlinks including colors for references, urls and citations
 
@@ -82,6 +85,8 @@
 %	MATH THEOREM DEFINITIONS
 %----------------------------------------------------------------------------------------
 
+\newcommand{\atantwo}[2]{\operatorname{atan2}\left(#1, #2\right)}
+
 \theoremstyle{plain}
 \newtheorem{thm}{Theorem}[section] % Defines the theorem environment
 \newtheorem{prop}[thm]{Proposition} % Defines the proposition environment
@@ -106,12 +111,14 @@
   breaklines=true
 }
 % Examples of list environments for different programming languages, you will likely need to specify your own
-\lstnewenvironment{pseudoc}{\lstset{frame=lines,language=C,mathescape=true}}{}
+\lstnewenvironment{pseudoc}{\lstset{frame=lines,language=C++,mathescape=true}}{}
 \lstnewenvironment{logs}{\lstset{frame=lines,basicstyle=\footnotesize\ttfamily,numbers=none}}{}
-\lstnewenvironment{cc}{\lstset{frame=lines,language=C}}{}
+\lstnewenvironment{cc}{\lstset{frame=lines,language=C++}}{}
 \lstnewenvironment{c64}{\lstset{backgroundcolor=\color{c64},basewidth=0.65em,basicstyle=\commodoreface\color{c64light},numbers=none,framerule=10pt,rulecolor=\color{c64light},frame=tb,framexbottommargin=30pt}}{}
 \lstnewenvironment{html}{\lstset{frame=lines,language=html,numbers=none}}{}
 \lstnewenvironment{pseudo}{\lstset{frame=lines,mathescape=true,morekeywords={learn_string_domain, save_model}}}{}
 \lstnewenvironment{pseudoctiny}{\lstset{language=C,mathescape=true,basicstyle=\tiny\sffamily}}{}
-\lstnewenvironment{cctiny}{\lstset{language=C,basicstyle=\tiny\sffamily}}{}
+\lstnewenvironment{cctiny}{\lstset{language=C++,basicstyle=\tiny\sffamily}}{}
 \lstnewenvironment{pseudotiny}{\lstset{mathescape=true,basicstyle=\tiny\sffamily}}{}
+
+\newcommand{\inlinesrc}[1]{\lstinline[columns=fixed,language=C]{#1}}

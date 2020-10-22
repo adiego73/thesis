@@ -24,6 +24,38 @@ Regarding the tools provided by ROS, one that is be crucial for debugging and/or
 
 Another useful tool provided is \ac{RViz}, a 3D visualization tool. With this tool it is possible to see the robot, orientation, reference frames, covariance matrices, etc. In addition, it is possible to draw lines, arrows, text and others, onto the environment in order to see useful information that cannot be extracted from messages.
 
+\subsection{MAVLink and MAVROS}
+\label{sssec:chapter2:drone:mavlink}
+\nocite{mavlink}
+MAVLink is a binary telemetry protocol designed for resource-constrained systems and bandwidth-constraint links, more specifically for drones of all kinds. As with ROS, it adopts a publisher-subscriber architecture, where data streams are published as topics. Its key features, as published in their website are:
+\begin{itemize}
+    \item Since its messages do not require any special framing, it is well suited for applications with very limited bandwidth.
+    \item It provides methods for detecting package drops, corruption and for package authentication.
+    \item Allows up to 255 concurrent systems on the network.
+    \item Enables both offboard and onboard communications.
+\end{itemize}
+\nocite{mavros}
+MAVROS is the extension of MAVLink in ROS, with the additive of being a proxy for Ground Control Station tool. Its main features, as published in its website are:
+\begin{itemize}
+    \item Communication with autopilot via serial port, UDP or TCP .
+    \item Internal proxy for Ground Control Station (serial, UDP, TCP).
+    \item Plugin system for ROS-MAVLink translation.
+    \item Parameter manipulation tool.
+    \item Waypoint manipulation tool.
+    \item PX4Flow support (by mavros\_extras).
+    \item OFFBOARD mode support.
+\end{itemize}
+
+One characteristic that worth mentioning, is that it translates the \ac{NED} reference frames into \ac{ENU} reference frames, and vice-versa, so to be compliant with ROS standard reference frames.
+
+\subsection{Octomap}
+\label{subsec:chapter1:ros:octomap}
+something about octomap
+
+\section{Homogeneous Transformation}
+\label{sec:chapter1:transform}
+something about matrices
+
 \section{Kalman Filter}
 \label{sec:chapter1:kf}
 \nocite{intro-robotics}
@@ -146,7 +178,7 @@ On the other hand, assuming that the robot already knows the map, the localizati
 \begin{figure}[h]
     \centering
     \includegraphics{Figures/fig3-slam.png}
-    \caption[Example of SLAM problem]{At the beginning \textbf{(a)} the robot has low uncertainty regarding its position. As it moves around the environment its uncertainty grows \textbf{(b), (c), (d)}, until it sees a known marker \textbf{(e)}, making the position uncertainty to shrink. \cite{intro-aut-mobile-robots}}
+    \caption[Example of SLAM problem]{At the beginning \textbf{(a)} the robot has low uncertainty regarding its pose. As it moves around the environment its uncertainty, represented by the dark gray ellipsis, grows \textbf{(b), (c), (d)}, until it sees a known landmark \textbf{(e)}, making the position uncertainty to shrink. \cite{intro-aut-mobile-robots}}
     \label{fig:chapter1:slam}
 \end{figure}
 
@@ -195,18 +227,20 @@ The EKF-SLAM algorithm estimates the robot's pose in addition to all encountered
 
 Assuming the robot's pose is composed by $x$, $y$, $\theta$ , the markers' pose is composed by $x$, $y$, and there are $N$ markers, the state vector $\mu$ will have a length of $3 \times 2N$, and the covariance matrix $\Sigma$ will have a size of $(3 \times 2N) \times (3 \times 2N)$.\\
 
-The algorithm can be seen in Algorithm~\ref{alg:chapter1:slam:ekfslam}. From lines 1 to 3, the algorithm computes the state vector and covariance matrix updates; the function $computeJacobian$ computes, indeed, the Jacobian matrix for the motion model $g$, the resulting matrix has the same size as the covariance matrix and has the following characteristic:
-\begin{align*}
+The algorithm can be seen in Algorithm~\ref{alg:chapter1:slam:ekfslam}. From lines 1 to 3, it computes the state vector and covariance matrix updates; the function $computeJacobian$ computes, indeed, the Jacobian matrix for the motion model $g$, and the resulting matrix has the same size as the covariance matrix and has the following characteristic:
+\begin{align}
    G_t &= \begin{bmatrix}
         G_r & \textbf{0} \\
-        \textbf{0} & \textbf{0}
+        \textbf{0} & \textbf{I}
     \end{bmatrix}\\
     G_r &= \begin{bmatrix}
     \frac{\partial x'}{\partial \mu_{t-1,x}} & \frac{\partial x'}{\partial \mu_{t-1,y}} & \frac{\partial x'}{\partial \mu_{t-1,\theta}}\\
     \frac{\partial y'}{\partial \mu_{t-1,x}} & \frac{\partial y'}{\partial \mu_{t-1,y}} & \frac{\partial y'}{\partial \mu_{t-1,\theta}}\\
     \frac{\partial \theta'}{\partial \mu_{t-1,x}} & \frac{\partial \theta'}{\partial \mu_{t-1,y}} & \frac{\partial \theta'}{\partial \mu_{t-1,\theta}}
 \end{bmatrix}
-\end{align*}
+\end{align}
 where $\frac{\partial x'}{\partial \mu_{t-1,x}}$ is the derivative of $g$ along $x'$ dimension, taken with respect to $x$ at $\mu_{t-1}$. At line 4, it iterates through every observation $z_t$. If the landmark is not already in the state vector, at line 6 it is added by projecting the observation and calculating the landmark's pose, adding two new elements to the state vector and two new more columns and rows to the covariance matrix. At line 7 the Jacobian of the observation model is computed, while at line 9 the Kalman gain is computed. At line 10, the new state vector is estimated, and the gain propagates the information through all the state vector, updating not only the robot's pose, but also the landmarks' poses. \\
 
 The fact that the Kalman gain is not sparse is important, because observing a landmark does not just improves the estimate of that landmark's pose, but also all the others, along with the robot's pose. This effect can be seen in Figure~\ref{fig:chapter1:slam}, with an additional explanation: most of the uncertainty of the landmarks' poses is caused by the robot's own uncertainty, so the location of those previously seen landmarks are correlated. When the robot gains information about its own pose, this information is propagated to the landmarks, and as result it improves the localization of other landmarks in the map.
+
+\subsection{Adding new landmarks}

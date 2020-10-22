@@ -171,13 +171,21 @@ Abstract
 \pagestyle{Ruled} % Include the chapter/section in the header along with a horizontal rule underneath
 
 \include{Chapters/introduction} % Include the introduction chapter
-\include{Chapters/chapter1} % Include the first content chapter
-%\include{Chapters/chapter2} % Include the second content chapter
-%\include{Chapters/chapter3} % Include the third content chapter
+\include{Chapters/chapter1}
+\include{Chapters/chapter2}
+\include{Chapters/chapter3}
+\include{Chapters/chapter4}
 
 \backmatter
 
 \chapterstyle{default} % Reset the chapter style back to the default used for non-content chapters
+
+%----------------------------------------------------------------------------------------
+%   APPENDIX
+%----------------------------------------------------------------------------------------
+
+\include{Appendices/appendix1}
+\include{Appendices/appendix2}
 
 %----------------------------------------------------------------------------------------
 %	BIBLIOGRAPHY
@@ -186,6 +194,7 @@ Abstract
 \bibliographystyle{plainnat} % Use the plainnat bibliography style
 
 \bibliography{bibliography} % Use the bibliography.bib file as the source of references
+
 
 %----------------------------------------------------------------------------------------
 %	INDEX
