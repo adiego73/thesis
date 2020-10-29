@@ -3,24 +3,24 @@
 
 \section{Robot Operating System}
 \label{sec:chapter1:ros}
-The \ac{ROS} \nocite{ros-website} is an open source middleware that provides inter-process communication through a message passing mechanism. It is, also, a collection of libraries, tools and conventions with the aim of simplify the development of software for robots. In this sense, one of the main components of the framework are nodes which encapsulate processes and/or algorithms.
+The \ac{ROS} \nocite{ros-website} is an open source middleware that provides inter-process communication through a message passing mechanism. It is also a collection of libraries, tools and conventions with the aim of simplify the development of software for robots. In this sense, one of the main components of the framework are the nodes, which encapsulate processes and/or algorithms.
 
 \subsection{Nodes}
 \label{subsec:chapter1:ros:nodes}
-Nodes are processes that perform some computation and communicate between them using a publisher/subscriber infrastructure based on topics. A node subscribes to a particular topic, and it will receive messages of that type from a publisher node. This way, publisher is hid to the subscriber, reducing the coupling between them. The advantage of this mechanism is that nodes can be developed separately once the message structure is defined, forcing developers to implement clear interfaces for communication by using a message \ac{IDL}. Moreover, this enables a modular and distributed development of the robotic system, while providing some fault tolerance and reduced code complexity.
+Nodes are processes that perform a specific computation. In the system the nodes communicate between them using a publisher/subscriber infrastructure based on topics. A node subscribes to a particular topic, and it will receive messages from a publisher node. This way, a publisher node is hid to the subscriber, reducing the coupling between them. The advantage of this mechanism is that nodes can be developed separately once the message structure is defined, forcing developers to implement clear interfaces for communication by using a message \ac{IDL}. Moreover, this enables a modular and distributed development of the robotic system, while providing some fault tolerance and reduced code complexity.
 
 \subsection{Topics}
 \label{subsec:chapter1:ros:topics}
-As mentioned before, communication between nodes is done via a publisher/subscriber architecture based on topics, which are named buses over which messages are exchanged. A node that generates data, publishes it over a topic, and this information is consumed by those nodes subscribed to that topic. There can be several publishers (as well as subscribers) for a topic. The transport protocol used for exchanging messages is defined at runtime and can be of two types: TCPROS or UDPROS. The description of these protocols is beyond the scope of this document and the reader is invited to read the ROS documentation for detailed information.
+As mentioned before, communication between nodes is done via a publisher/subscriber architecture based on topics, which are named buses over which messages are exchanged. There can be several publishers (as well as subscribers) for a topic. A node that generates data publishes all its information in a specific topic bus, consequently this information is consumed by those nodes subscribed to that topic. The transport protocol used for exchanging messages is defined at runtime and can be of two types: TCPROS or UDPROS. The description of these protocols is beyond the scope of this document and the reader is invited to read the ROS documentation for detailed information.
 
 \subsection{Services}
 \label{subsec:chapter1:ros:services}
-As well as topics, services are a way to communicate nodes. The difference is that topics are an asynchronous way of communication, while services are synchronous. This is a key difference, because nodes decide when to trigger a service and so, services are used to retrieve specific information or to ask another node to do something out of caller's node scope.
+As well as topics, services are a way to communicate nodes. The difference is that topics are an asynchronous way of communication, while services are synchronous. The key difference lies on the ability of nodes to decide when to trigger a service. Hence, services are used in between nodes to retrieve specific information or to request another node to carry out a computation beyond caller's node scope.
 
 
 \subsection{Tools}
-\label{chapter1:ros:tools}
-Regarding the tools provided by ROS, one that is be crucial for debugging and/or experimentation is the bag recording and playback. Since the message passing infrastructure is anonymous (meaning that nodes communicate between each others without knowing which node sent or received a message) it is possible to record the messages during a period of time, without taking into consideration which node sent a message and which node received it. This recorder bag is useful for debugging because it can be played back, hence reproducing a previous experiment. Also, it can be used for development of new nodes that depend on the messages contained in the bag.\\
+\label{subsec:chapter1:ros:tools}
+Regarding the tools provided by ROS, one that is crucial for debugging and/or experimentation is the bag recording and playback. Since the exchange of messages between nodes is anonymous (meaning that nodes communicate between each others without knowing which node sent or received a message) it is possible to record the messages during a period of time, without taking into consideration which node sent a message and which node received it. This recorder bag is useful for debugging since it can be played back, hence reproducing a previous experiment. Also, it can be used for the development of new nodes that depend on the messages contained in the bag.\\
 
 Another useful tool provided is \ac{RViz}, a 3D visualization tool. With this tool it is possible to see the robot, orientation, reference frames, covariance matrices, etc. In addition, it is possible to draw lines, arrows, text and others, onto the environment in order to see useful information that cannot be extracted from messages.
 
@@ -46,7 +46,7 @@ MAVROS is the extension of MAVLink in ROS, with the additive of being a proxy fo
     \item OFFBOARD mode support.
 \end{itemize}
 
-One characteristic that worth mentioning, is that it translates the \ac{NED} reference frames into \ac{ENU} reference frames, and vice-versa, so to be compliant with ROS standard reference frames.
+One characteristic that worth mentioning, is that it translates the \ac{NED} reference frames into \ac{ENU} reference frames, and vice-versa, so as to be compliant with ROS standard reference frames.
 
 \subsection{Octomap}
 \label{subsec:chapter1:ros:octomap}
@@ -60,7 +60,7 @@ something about matrices
 \label{sec:chapter1:kf}
 \nocite{intro-robotics}
 
-\ac{KF}, was introduced by \cite{kalman}, and provides a recursive method for estimating the state of a dynamic system with presence of noise. It is a technique for filtering and prediction in \emph{linear Gaussian systems} and applicable only to continuous states. One of its key features is that it simultaneously maintains estimates of the state vector and the estimate error covariance. It assures that the posteriors are Gaussian if the Markov assumption is hold, in addition to three conditions. The Markov assumption states that the past and future data are independent if one knows the current state; the other three conditions are the following:
+Introduced by \cite{kalman}, the \ac{KF} provides a recursive method for estimating the state of a dynamic system with presence of noise. It is a technique for filtering and prediction in \emph{linear Gaussian systems} and applicable only to continuous states. One of its key features is that it simultaneously maintains estimates of the state vector and the estimate error covariance. It assures that the posteriors are Gaussian if the Markov assumption is hold, in addition to three conditions. The Markov assumption states that the past and future data are independent if one knows the current state; the other three conditions are the following:
 \begin{enumerate}
     \item{The state transition probability $p\left( x_t | u_t, x_{t-1}\right)$ must be a linear function in its arguments. This is guaranteed by $ x_t = A_t x_{t-1} + B_t u_t + \epsilon_t $. Here, $x_t$ and $x_{t-1}$ are the state vectors, of size $n$, and $u_t$ represents the control vector, of size $m$, at time $t$; $A_t$ and $B_t$ are matrices of size $n \times n$ and $n\times m$ respectively. In this way, the state transition function becomes linear in its arguments, hence KF assumes a linear system dynamics. \\\\ $\epsilon_t$ represents the uncertainty introduced by the state transition, and it is a Gaussian random variable with zero mean and $R_t$ covariance.}
     \item{The measurement probability $p\left(z_t | x_t\right)$ must be linear in its arguments. This is guaranteed by $z_t = C_t x_t + \delta_t$, where $z_t$ represents the measurement vector of size $k$, $C_t$ is a matrix of size $k \times n$ and $\delta_t$ is a Gaussian noise with zero mean and $Q_t$ covariance.}
@@ -161,11 +161,11 @@ The EKF algorithm can be seen in Algorithm~\ref{alg:chapter1:kf:ekf}, and it is 
 
 \section{Simultaneous Localization and Mapping}
 \label{sec:chapter1:slam}
-Among all the problems faced by autonomous mobile robots, two of them are relevant for this work: localization and mapping. The former one, is related to the problem of where the robot is, while the later is related to building a map of the environment. However, to accurately localize itself the robot needs a map of the environment in which it is immersed in, and, in order to build a map, it needs to know where it currently is, giving us a chicken-egg situation. Hence, the \ac{SLAM} problem appears when the robot does not know the map nor its localization, while measurements and controls are given.\\
+Among all the problems faced by autonomous mobile robots, two of them are relevant for this work: localization and mapping. The former one, is related to the problem of where the robot is, while the later is related to building a map of the environment. However, in order to accurately localize itself the robot needs a map of the environment in which it is immersed in, and, in order to build a map, it needs to know where it currently is, giving us a chicken-egg situation. Hence, the \ac{SLAM} problem appears when the robot has no knowledge of its localization nor its environment map, while measurements and controls are given.\\
 
 The problem of building a map can be summarized in the following steps:
 \begin{enumerate}
-    \item{The robot sense the environment using its sensors}
+    \item{The robot senses the environment using its sensors}
     \item{It creates a representation of the acquired data}
     \item{It integrates the processed sensor data with the previously learned map structure}
 \end{enumerate}
@@ -188,14 +188,14 @@ The idea of the SLAM problem is to estimate a posterior belief that involves not
 
 \subsection{EKF-SLAM}
 \label{subsec:chapter1:slam:ekfslam}
-The SLAM problem can be addressed, between others, using an EKF approach. The algorithm proceeds in the same way as shown in Section~\ref{subsec:chapter1:kf:ekf}, being $\mu$ a state vector containing the information about the robot pose ($q_r$) and the landmarks' pose ($m_i$):
+The SLAM problem can be addressed, between others, using an EKF approach. The algorithm proceeds in the same way as shown in Section~\ref{subsec:chapter1:kf:ekf}, being $\mu$ a state vector containing the information for the robot pose ($q_r$) and the landmarks' pose ($m_i$):
 \begin{equation}
     \mu = \begin{bmatrix}
         q_r & m_0 & \dots & m_{n-1}
     \end{bmatrix}^T
 \end{equation}
 
-One thing that worth mentioning is that in EKF-SLAM maps are \emph{feature based}, meaning that the features or landmarks are assumed to be points in the space: if the robot sees, for example, a chair, it will store a point that represents the chair in space. Also, as explained before, it assumes Gaussian noise for the robot motion and observations.\\
+One thing that is worth mentioning is that in EKF-SLAM maps are \emph{feature based}. This means that the features or landmarks are assumed to be points in the space: if the robot sees, for example, a chair, it will store a point that represents the chair in space. Also, as explained before, it assumes Gaussian noise for the robot motion and observations.\\
 
 The EKF-SLAM algorithm estimates the robot's pose in addition to all encountered landmarks' poses along its way. Thus, there is a correspondence between robot's pose and landmarks, and that is why it is necessary to include the landmarks information into the state vector. Hence, the algorithm estimates the posterior $p\left(\mu_t | z_t, u_t\right)$.\\
 
@@ -216,9 +216,10 @@ The EKF-SLAM algorithm estimates the robot's pose in addition to all encountered
         }
         \BlankLine
         $H_t^i = computeJacobian\left( h^i \right)$\;
+        $v^i =  z_t^i - h^i \left( \hat\mu_t \right)$\;
         $S = H_t^i \hat\Sigma_t H_t^{iT} + Q_t$\;
         $K_t^i = \hat\Sigma_t H_t^{iT} S^{-1}$ \;
-        $\mu_t = \hat\mu_t + K_t^i \left( z_t^i - h^i \left( \hat\mu_t \right) \right) $ \;
+        $\mu_t = \hat\mu_t + K_t^i \left( v^i \right) $ \;
         $\Sigma_t = (I - K_t^i H_t^i) \hat\Sigma_t$ \;
     }
     \BlankLine
@@ -239,8 +240,78 @@ The algorithm can be seen in Algorithm~\ref{alg:chapter1:slam:ekfslam}. From lin
     \frac{\partial \theta'}{\partial \mu_{t-1,x}} & \frac{\partial \theta'}{\partial \mu_{t-1,y}} & \frac{\partial \theta'}{\partial \mu_{t-1,\theta}}
 \end{bmatrix}
 \end{align}
-where $\frac{\partial x'}{\partial \mu_{t-1,x}}$ is the derivative of $g$ along $x'$ dimension, taken with respect to $x$ at $\mu_{t-1}$. At line 4, it iterates through every observation $z_t$. If the landmark is not already in the state vector, at line 6 it is added by projecting the observation and calculating the landmark's pose, adding two new elements to the state vector and two new more columns and rows to the covariance matrix. At line 7 the Jacobian of the observation model is computed, while at line 9 the Kalman gain is computed. At line 10, the new state vector is estimated, and the gain propagates the information through all the state vector, updating not only the robot's pose, but also the landmarks' poses. \\
+where $\frac{\partial x'}{\partial \mu_{t-1,x}}$ is the derivative of $g$ along $x'$ dimension, taken with respect to $x$, $y$.. at $\mu_{t-1}$.\\
 
-The fact that the Kalman gain is not sparse is important, because observing a landmark does not just improves the estimate of that landmark's pose, but also all the others, along with the robot's pose. This effect can be seen in Figure~\ref{fig:chapter1:slam}, with an additional explanation: most of the uncertainty of the landmarks' poses is caused by the robot's own uncertainty, so the location of those previously seen landmarks are correlated. When the robot gains information about its own pose, this information is propagated to the landmarks, and as result it improves the localization of other landmarks in the map.
+At line 4, it iterates through every observation $z_t$. At each time step $t$, a sensor obtains a set of observations $z^i$ of one of the $N$ landmarks. Each observation is associated with a map feature, and this association is accomplished by a prediction of the measurement that each feature would generate and a measure of the difference between the prediction and the sensor measurement. The prediction of the measurements can be obtained by the observation model $h^i$, which result is a vector of predicted features. If the observation $z^i$ comes from a landmark $i$, the following relation is hold:
+\begin{align}
+    z^i = h^i\left(x_t\right) + w^i
+\end{align}
+where $x_t$ is the true state and $w^i$ is the observation noise with covariance $Q_t$, and assumed to be zero mean, Gaussian, additive and independent of the process noise. If the landmark is not already in the state vector, at line 6 it is added by projecting the observation and calculating the landmark's pose, adding two new elements to the state vector and two new more columns and rows to the covariance matrix. At line 7 the Jacobian of the observation model is computed.\\
+
+At line 8, the innovation is calculated while its covariance is calculated at line 9. The innovation measures the discrepancy between the predicted observation and the actual sensor measurement. At line 10 the Kalman gain is computed, and at line 11 the state vector is updated. The gain propagates the information through all the state vector, updating not only the robot's pose, but also the landmarks' poses.\\
+
+The fact that the Kalman gain is not sparse is important, because observing a landmark not only improves the estimate of that landmark's pose, but also all the others, along with the robot's pose. This effect can be seen in Figure~\ref{fig:chapter1:slam}, with an additional explanation: most of the uncertainty of the landmarks' poses is caused by the robot's own uncertainty, so the location of those previously seen landmarks are correlated. When the robot gains information about its own pose, this information is propagated to the landmarks, and as result it improves the localization of other landmarks in the map.
 
 \subsection{Adding new landmarks}
+\label{subsec:chapter1:slam:ekfslam:addlandmarks}
+So far, the existence and accuracy of a map was assumed. Nevertheless, this is not always true, and the construction of a map should somehow be done. Hopefully, EKF-SLAM algorithm considers the possibility of adding new landmarks to the map while doing the localization process with known landmarks. This process of adding new landmarks to the map is done via what is called inverse observation model, which handles the sensor measurements, identifies the new landmark, and adds it to the state vector.\\
+
+The inverse observation model will produce the coordinates of the new landmark in the map, and this information will be added to the state vector, which will increase its size (in this case) by two new elements.
+\begin{align}
+    h^{-1}\left(\mathbf{x_r}, \mathbf{z}\right) &= \begin{bmatrix}
+        x_l \\ y_l
+    \end{bmatrix}
+    \label{eq:chapter1:slam:ekfslam:inverseh}\\
+    \mathbf{x_t} = y\left(\mathbf{x}, \mathbf{z}\right) &= \begin{bmatrix}
+        \mathbf{x} \\ h^{-1}\left(\mathbf{x_r}, \mathbf{z}\right)
+    \end{bmatrix}
+    \label{eq:chapter1:slam:ekfslam:extension_y}
+\end{align}
+In equation~(\ref{eq:chapter1:slam:ekfslam:inverseh}) $\mathbf{x_r}$ refers to the elements in the state vector that corresponds to the robot's pose, and $\mathbf{z}$ refers to the observation elements, which can be, for example, range and bearing data. Since the state vector has a variable length, extending the covariance matrix is also needed whenever the robot sees a landmark that has not being seen previously. The extension of the covariance matrix is achieved as shown in equation~(\ref{eq:chapter1:slam:ekfslam:cov_update}).
+\begin{align}
+    \mathbf{\hat\Sigma} = \mathbf{Y_x} \mathbf{\Sigma} \mathbf{Y_x}^T + \mathbf{Y_z} \mathbf{Q}_t \mathbf{Y_z}^T
+    \label{eq:chapter1:slam:ekfslam:cov_update}\\
+    \mathbf{Y_x} = \frac{\partial y}{\partial x} = \begin{bmatrix}
+        \frac{\partial x}{\partial x} \\ \frac{\partial h^{-1}}{\partial x}
+    \end{bmatrix} = \begin{bmatrix}
+    \mathbf{I} \\ \mathbf{G_x}
+    \end{bmatrix}
+    \label{eq:chapter1:slam:ekfslam:yx}\\
+    \mathbf{Y_z} = \frac{\partial y}{\partial z} = \begin{bmatrix}
+        \frac{\partial x}{\partial z} \\ \frac{\partial h^{-1}}{\partial z}
+    \end{bmatrix} = \begin{bmatrix}
+        \mathbf{0} \\ \mathbf{G_z}
+    \end{bmatrix}
+    \label{eq:chapter1:slam:ekfslam:yz}
+\end{align}
+where matrices $\mathbf{Gx}$ and $\mathbf{Gz}$ are the Jacobian of function $h^{-1}$ with respect to the state vector and the observation vector respectively. By substituting the Jacobians in equations (\ref{eq:chapter1:slam:ekfslam:yx}) and (\ref{eq:chapter1:slam:ekfslam:yz}) into equation~(\ref{eq:chapter1:slam:ekfslam:cov_update}), the following matrix is obtained:
+\begin{align}
+    \mathbf{\hat{\Sigma}} = \begin{bmatrix}
+        \mathbf{\Sigma} & \mathbf{\Sigma} \mathbf{G_x}^T \\
+        \mathbf{G_x} \mathbf{\Sigma} & \mathbf{G_x} \mathbf{\Sigma} \mathbf{G_x}^T + \mathbf{G_z} \mathbf{Q}_t \mathbf{G_z}^T
+    \end{bmatrix}
+    \label{eq:chapter1:slam:ekfslam:cov_update_full}
+\end{align}\\
+
+The linearized covariance update can be factored as shown in equation~(\ref{eq:chapter1:slam:ekfslam:factoring}) by assuming that $A \equiv 1$, $B \equiv 0$, $C \equiv 0$ and $D \equiv \mathbf{G_z}$
+\begin{align}
+    \begin{bmatrix}
+        A & B \\ C & D
+    \end{bmatrix} \begin{bmatrix}
+        P & 0 \\ 0 & Q
+    \end{bmatrix} \begin{bmatrix}
+        A & B \\ C & D
+    \end{bmatrix}^T &= \begin{bmatrix}
+            APA^T + BQB^T & APC^T + BQD^T \\
+            CPA^T + DQB^T & CPC^T + DQD^T
+    \end{bmatrix}
+    \label{eq:chapter1:slam:ekfslam:factoring}\\
+    \mathbf{\hat\Sigma} &= \begin{bmatrix}
+        \mathbf{1} & \mathbf{0} \\ \mathbf{G_x} & \mathbf{G_z}
+    \end{bmatrix} \begin{bmatrix}
+        \mathbf{\Sigma} & \mathbf{0} \\ \mathbf{0} & \mathbf{Q}_t
+    \end{bmatrix} \begin{bmatrix}
+        \mathbf{1} & \mathbf{0} \\ \mathbf{G_x} & \mathbf{G_z}
+    \end{bmatrix}^T
+    \label{eq:chapter1:slam:ekfslam:factored_cov_update}\\
+\end{align}

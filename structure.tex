@@ -6,7 +6,7 @@
 \usepackage[round]{natbib}\citeindextrue % Round brackets around citations, change to square for square brackets
 \usepackage{graphicx} % Required to include images
 \usepackage{color} % Required for custom colors
-\usepackage{amsmath,amssymb,theorem} % Math packages
+\usepackage{amsmath,amssymb,theorem,bm} % Math packages
 \usepackage{listings} % Required for including snippets of code
 \usepackage{booktabs} % Required for better horizontal rules in tables
 \usepackage{xspace} % Provides the ability to use an intelligent space which is used in \institution and \department
@@ -20,6 +20,7 @@
 \usepackage{multirow}
 \usepackage[shortlabels]{enumitem}
 \usepackage[super]{nth}
+
 
 \hypersetup{colorlinks, breaklinks, linkcolor=black,citecolor=black,filecolor=black,urlcolor=black} % Set up hyperlinks including colors for references, urls and citations
 
@@ -82,10 +83,11 @@
 \maxtocdepth{subsection}
 
 %----------------------------------------------------------------------------------------
-%	MATH THEOREM DEFINITIONS
+%	MATH DEFINITIONS
 %----------------------------------------------------------------------------------------
 
 \newcommand{\atantwo}[2]{\operatorname{atan2}\left(#1, #2\right)}
+\newcommand{\norm}[1]{\lvert #1 \rvert}
 
 \theoremstyle{plain}
 \newtheorem{thm}{Theorem}[section] % Defines the theorem environment
@@ -121,4 +123,4 @@
 \lstnewenvironment{cctiny}{\lstset{language=C++,basicstyle=\tiny\sffamily}}{}
 \lstnewenvironment{pseudotiny}{\lstset{mathescape=true,basicstyle=\tiny\sffamily}}{}
 
-\newcommand{\inlinesrc}[1]{\lstinline[columns=fixed,language=C]{#1}}
+\newcommand*{\inlinesrc}{\lstinline[columns=fixed,language=C]}

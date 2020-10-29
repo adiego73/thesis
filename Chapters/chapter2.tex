@@ -1,6 +1,6 @@
 \chapter{EKF-SLAM Implementation}
 \label{ch:chapter2}
-In Chapter~\ref{ch:chapter1} the EKF-SLAM algorithm in the context of SLAM was explained. As mentioned in Section~\ref{sec:chapter1:kf} and Section~\ref{subsec:chapter1:kf:ekf}, the algorithm can be summarized in two steps: prediction and correction. In the first step, prediction about the next state of the system is done, while during correction, this estimation is updated. \\
+In Chapter~\ref{ch:chapter1} the EKF-SLAM algorithm in the context of SLAM was explained. As mentioned in Section~\ref{sec:chapter1:kf}, the algorithm can be summarized in two steps: prediction and correction. In the first stage involves the prediction of the next state of the system, meanwhile, during the correction stage, this estimation is updated. \\
 
 In this chapter, an EKF-SLAM implementation is shown, starting from the used drone characteristics, going through the prediction and correction steps, and ending with the overall system's architecture.
 
@@ -8,7 +8,7 @@ In this chapter, an EKF-SLAM implementation is shown, starting from the used dro
 \label{sec:chapter2:drone}
 \subsection{Characteristics}
 \label{subsec:chapter2:drone:characteristics}
-The used drone has a common characteristics: four rotors disposed as an X. The drone frame is called 3DR Iris Quadrotor, and can be seen in Figure~\ref{fig:chapter2:drone:frame}. Its total weight is XX kg., and it diameter is XX cm.\\
+The drone considered for this analysis has a common characteristics, such as four rotors disposed as an X. The drone frame is called 3DR Iris Quadrotor, and can be seen in Figure~\ref{fig:chapter2:drone:frame}. Its total weight is XX kg., and it diameter is XX cm.\\
 
 \begin{figure}[h]
     \centering
@@ -18,7 +18,7 @@ The used drone has a common characteristics: four rotors disposed as an X. The d
 \end{figure}
 
 \subsubsection{Flight Controller}
-The flight controller used in this case is a PixHawk 4, and its characteristics are shown in Table~\ref{tab:chapter2:drone:px4fc}. Worth mentioning that it has integrated an accelerometer, a gyroscope, a magnetometer and a barometer.
+The flight controller used in this case is a PixHawk 4, and its characteristics are shown in Table~\ref{tab:chapter2:drone:px4fc}. It is worth mentioning that it includes an integrated accelerometer, a gyroscope, a magnetometer and a barometer.
 
 \begin{table}[h]
     \centering
@@ -66,11 +66,13 @@ The flight controller used in this case is a PixHawk 4, and its characteristics 
 \subsubsection{Additional Sensors}
 The drone was equipped with several sensors that are the input for localization, mapping and path planning algorithms, among others.\\
 
-The localization and mapping algorithm makes use, in an indirect way, of monocular and stereo cameras, and laser range sensors. Four cameras were mounted in order to be able to look around (every 90 degrees). Two stereo cameras were mounted, one points forward in order to update the Octomap and the other points downwards in order to see the markers; Also, both of them are used to build a 3-dimensional map, used for obstacle avoidance and with the height estimation algorithm. Furthermore, eight laser range sensors were mounted every 45 degrees, and one laser range sensor was mounted pointing downwards in order to estimate the current drone height.\\
+The localization and mapping algorithm makes use, in an indirect way, of monocular and stereo cameras, and laser range sensors. Four cameras were mounted in order to be able to have 360 range view, with cameras mounted every 90 degrees. Furthermore, two stereo cameras were mounted, one points forward in order to update the Octomap and the other points downwards in order to see the markers; Also, both of them are used to build a 3-dimensional map, used for obstacle avoidance and with the height estimation algorithm. Furthermore, eight laser range sensors were mounted every 45 degrees, and one laser range sensor was mounted pointing downwards in order to estimate the current drone height.\\
 
 \subsection{Reference Frames}
 \label{subsec:chapter2:drone:frames}
-The reference frames in the system can be seen in Figure~\ref{fig:chapter2:drone:frames:frames}, and it can be seen three frames: \emph{map}, \emph{odom} and \emph{base\_link}. The \emph{map} frame, also called \emph{world} or \emph{global} frame, is the static reference frame, where the global drone's position and global markers' position is set. The odom reference frame is similar to map, but with the difference that this frame drifts with time, as happens with the pure odometry. Finally, the base\_link frame, also referred as \emph{body} frame, refers to the center of mass of the drone. All these transformations are published by different nodes: the map to odom transform is handled by the \emph{rtabmap} node, the odom to base\_link is handled by \emph{mavros} node. There are other transformations in the system, mainly related to the base\_link reference frame and the different cameras and sensors in the drone. \\
+This system is composed by three reference frames linked with each other, as represented in Figure~\ref{fig:chapter2:drone:frames:frames}: \emph{map}, \emph{odom} and \emph{base\_link}. The \emph{map} frame, also called \emph{world} or \emph{global} frame, is the static reference frame, where the global drone's position and global markers' position is set. The odom reference frame is similar to the map frame, but the difference is that this frame drifts with time, as happens with the pure odometry. Finally, the base\_link frame, also referred as \emph{body} or \emph{local} frame, refers to the center of mass of the drone.\\
+
+As mentioned before, all transformations within these reference frames are published by different nodes: the map to odom transformation is handled by the \emph{rtabmap} node, the odom to base\_link is handled by \emph{mavros} node. There are many other transformations in the system, but they are mainly related to the base\_link reference frame and the different cameras and sensors in the drone. \\
 
 \begin{figure}[h]
     \centering
@@ -79,7 +81,7 @@ The reference frames in the system can be seen in Figure~\ref{fig:chapter2:drone
     \label{fig:chapter2:drone:frames:frames}
 \end{figure}
 
-Finally, there is a transformation that worth mentioning: the \ac{NED} to \ac{ENU} transform. As mentioned in Section~\ref{sec:chapter1:ros}, ROS uses the ENU convention, while the convention adopted by the Aerospace community is the NED. Also, as mentioned in Section~\ref{sssec:chapter2:drone:mavlink}, MAVROS is in charge of doing and publish this transformation. In Figure~\ref{fig:chapter2:drone:frames:enu2ned} a simple scheme of the transformation can be seen. As explained before, this transform consists on rotating the X-axis and the Y-axis by 90 degrees, hence the homogeneous rotation matrix will have the following form:
+Finally, there is a transformation that worth mentioning: the \ac{NED} to \ac{ENU}. As mentioned in Section~\ref{sec:chapter1:ros}, ROS uses the ENU convention, while the convention adopted by the Aerospace community is the NED. Also, as mentioned in Section~\ref{sssec:chapter2:drone:mavlink}, MAVROS is in charge of doing and publish this transformation. In Figure~\ref{fig:chapter2:drone:frames:enu2ned} a simple scheme of the transformation can be seen. As explained before, this transform consists on rotating the X-axis and the Y-axis by 90 degrees, hence the homogeneous rotation matrix will have the following form:
 \begin{align}
     R_{ENU}^{NED} & = \begin{bmatrix}
         0 & -1 & 0 & 0 \\
@@ -193,7 +195,7 @@ Consequently, the noise covariance matrix of the observation model cannot be ded
          & \ddots & \\
         \textbf{0} & & \sigma_n^2 \\
     \end{bmatrix}
-\end{equation}
+\end{equation}\\
 where the diagonal elements $\sigma_{1..n}$ are the standard deviation of the sensor. Depending on the sensor used, the diagonal elements can be the standard deviation for the range and bearing components (distance, azimuth and elevation), or others.\\
 
 As shown in Algorithm~\ref{alg:chapter1:slam:ekfslam} several steps are followed during the correction part of the algorithm. After computing the observation model and its Jacobian matrix, the Kalman gain and the innovation should be calculated, and finally, the state vector and covariance matrix updates should be done.
@@ -206,7 +208,7 @@ A ROS node will publish the range and bearing information every time the drone s
 \begin{equation}
     \begin{bmatrix}
         p_{i, x}^b \\ p_{i, y}^b \\ p_{i, z}^b
-    \end{bmatrix} = \textbf{T}^{-1} \begin{bmatrix}
+    \end{bmatrix} = \bm{T_r}^{-1} \begin{bmatrix}
         p_{i, x}^w \\ p_{i, y}^w \\ p_{i, z}^w
 \end{bmatrix}
 \label{eq:chapter2:correction:pole:world2body_transform}
@@ -222,15 +224,15 @@ A ROS node will publish the range and bearing information every time the drone s
 \label{eq:chapter2:correction:pole:range_bearing}
 \end{equation}
 
-In equation~(\ref{eq:chapter2:correction:pole:world2body_transform}), $\textbf{T}^{-1}$ corresponds to the inverse of the homogeneous transformation matrix with respect to the current drone's pose, and elements $p_i^w$ are the $x$, $y$ and $z$ coordinates of the $i$ pole's tip in the world reference frame. This way, the global position of the pole $i$ is projected to the body reference frame. After that, the range ($\rho$), azimuth angle ($\alpha$) and elevation angle ($\beta$) are calculated, as shown in equation~(\ref{eq:chapter2:correction:pole:range_bearing}). In Figure~\ref{fig:chapter2:correction:poles:range_bearing} an example of the range and bearing is shown.
+In equation~(\ref{eq:chapter2:correction:pole:world2body_transform}), $\bm{T_r}^{-1}$ corresponds to the inverse of the homogeneous transformation matrix with respect to the current drone's pose, and elements $p_i^w$ are the $x$, $y$ and $z$ coordinates of the $i$ pole's tip in the world reference frame. This way, the global position of the pole $i$ is projected to the body reference frame. After that, the range ($\rho$), azimuth angle ($\alpha$) and elevation angle ($\beta$) are calculated, as shown in equation~(\ref{eq:chapter2:correction:pole:range_bearing}). In Figure~\ref{fig:chapter2:correction:poles:range_bearing} an example of the range and bearing is shown.
 \begin{figure}[h]
     \centering
     \includegraphics[width=\textwidth]{Figures/fig7-range_and_bearing}
-    \caption[Range and Bearing example]{Range and bearing example. The drone sees a pole, process the data from the sensors and estimates the distance ($\rho$), the elevation angle ($\beta$), and the azimuth angle ($\alpha$). The elevation angle is calculated based on the top extreme of the pole.}
+    \caption[Range and Bearing example]{Range and bearing example. The drone observes a pole, process the data from the sensors and estimates the distance ($\rho$), the elevation angle ($\beta$), and the azimuth angle ($\alpha$). The elevation angle is calculated based on the top extreme of the pole.}
     \label{fig:chapter2:correction:poles:range_bearing}
 \end{figure}
 
-Seen a pole affects only the drone's pose, and therefore, the Jacobian matrix of the observation model will have the following form:
+Observing a pole affects only the drone's pose, and therefore, the Jacobian matrix of the observation model will have the following form:
 \begin{equation}
     H_i = \begin{bmatrix}
         \frac{\partial \rho'}{\partial \mu_x} & \frac{\partial \rho'}{\partial \mu_y} & \frac{\partial \rho'}{\partial \mu_z} & \frac{\partial \rho'}{\partial \mu_{\psi}} & \dots & 0 \\
@@ -242,52 +244,164 @@ where $\rho'$ corresponds to the distance part of the observation model, $\alpha
 
 \subsection{Observation model for Markers}
 \label{subsec:chapter2:correction:markers}
-The observation model for the markers is a bit different. In this case a ROS node is responsible of detecting, tracking and publish the pose of the markers with respect to the camera that has seen it. The ROS package responsible of this process is called \inlinesrc{visp_auto_tracker}, and publishes messages of type \inlinesrc{geometry_msgs::PoseStamped}, which provides the position and orientation of the seen marker. An example of this situation can be seen in Figure~\ref{}\\
 
-Every time the camera that points down sees a known marker, the \inlinesrc{visp_auto_tracker} node will publish the pose of that marker. This published pose is with respect to the camera which is not positioned at the drone's center of mass and so, a different transformation is needed. This process can be seen in equation~(\ref{eq:chapter2:correction:markers:world2body_trasnform}), and compromises two transformations: the drone's pose from world to camera frame, and from camera to body reference frame.
+The observation model for the markers is a bit different. In this case a ROS node is responsible of detecting, tracking and publishing the pose of the markers with respect to the camera that has seen it. The ROS package responsible of this process is called \inlinesrc{visp_auto_tracker}, and publishes messages of type \inlinesrc{geometry_msgs::PoseStamped}, which provides the position and orientation of the seen marker. An example of this situation can be seen in Figure~\ref{fig:chapter2:correction:markers:example}.\\
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=\textwidth]{Figures/fig8-marker_example}
+    \caption[Example of the drone observing a marker]{Example of the drone observing a marker. The camera visualize a marker and the node \inlinesrc{visp_auto_tracker} estimates its pose with respect to the camera reference frame.}
+    \label{fig:chapter2:correction:markers:example}
+\end{figure}
+
+Every time the camera that points down sees a known marker, the \inlinesrc{visp_auto_tracker} node will publish the pose of that marker. This published pose is with respect to the camera which is not positioned at the drone's center of mass and so, a different transformation is needed. This process can be seen in equation~(\ref{eq:chapter2:correction:markers:world2body_trasnform}), in which the transformation of the marker's pose in the world reference frame is transformed to the pose in the camera reference frame.
 \begin{equation}
     \begin{bmatrix}
-        c_x^w \\ c_y^w \\ c_z^w \\ c_{\phi}^w \\ c_{\theta}^w \\ c_{\psi}^w
-    \end{bmatrix} = (\textbf{T}_r^w * \textbf{T}_c^r)^{-1} * \mathbf{T_c}_w^c
+        m_{i, x}^c \\ m_{i, y}^c \\ m_{i, z}^c \\ m_{i, \phi}^c \\ m_{i, \theta}^c \\ m_{i, \psi}^c
+    \end{bmatrix} = (\bm{T_r} * \bm{T_c})^{-1} * \bm{T_m}
     \label{eq:chapter2:correction:markers:world2body_trasnform}
 \end{equation}
-where, $\textbf{T}_r^w$ is the homogeneous transformation matrix of the drone's pose, $\textbf{T}_c^r$ is the homogeneous transformation matrix of the camera's pose, and $\mathbf{T_c}_w^c$ is the homogeneous transformation matrix of the seen marker's pose which transforms its pose from camera reference frame to world reference frame.\\
+where, $\bm{T_r}$ is the homogeneous transformation matrix of the drone's pose, $\bm{T_c}$ is the homogeneous transformation matrix of the camera's pose, and $\bm{T_m}$ is the homogeneous transformation of the marker's pose. The result is a vector that contains the marker's pose in the camera reference frame.\\
 
-As mentioned before, seen a marker will update the drone's pose and that marker's pose, and therefore the Jacobian matrix of the observation model will have a different aspect from the pole's case. Here, the Jacobian can be split in two parts as shown in equation~(\ref{eq:chater2:correction:markers:jacobian}), where the left part, as with the poles, affects the drone's pose, while the right part of the matrix affects the seen marker's pose.
+As mentioned before, observing a marker will update the drone's pose and that marker's pose, and therefore the Jacobian matrix of the observation model will have a different aspect from the pole's case. Here, the Jacobian can be split in two parts as shown in equation~(\ref{eq:chater2:correction:markers:jacobian}), where the left part, as with the poles, affects the drone's pose, while the right part of the matrix affects the seen marker's pose.
 \begin{align}
     H_i &= \begin{bmatrix}
-        \frac{\partial h_i(\hat\mu)}{\partial \mu_r} & \dots & \frac{\partial h_i(\hat\mu)}{\partial \mu_{m_i}} & \dots
+        \frac{\partial h_i(\hat\mu)}{\partial \mu_r} & \dots0\dots & \frac{\partial h_i(\hat\mu)}{\partial \mu_{m_i}} & \dots0\dots
     \end{bmatrix}
-    \label{eq:chater2:correction:markers:jacobian}\\
-    \frac{\partial h_i(\hat\mu)}{\partial \mu_r} &= \begin{bmatrix}
-        \frac{\partial x_m'}{\partial \mu_x} & \frac{\partial x_m'}{\partial \mu_y} & \frac{\partial x_m'}{\partial \mu_z} & \frac{\partial x_m'}{\partial \mu_{\psi}}\\
-        \frac{\partial y_m'}{\partial \mu_x} & \frac{\partial y_m'}{\partial \mu_y} & \frac{\partial y_m'}{\partial \mu_z} & \frac{\partial y_m'}{\partial \mu_{\psi}}\\
-        \frac{\partial z_m'}{\partial \mu_x} & \frac{\partial z_m'}{\partial \mu_y} & \frac{\partial z_m'}{\partial \mu_z} & \frac{\partial z_m'}{\partial \mu_{\psi}}\\
-        \frac{\partial \phi_m'}{\partial \mu_x} & \frac{\partial \phi_m'}{\partial \mu_y} & \frac{\partial \phi_m'}{\partial \mu_z} & \frac{\partial \phi_m'}{\partial \mu_{\psi}}\\
-        \frac{\partial \theta_m'}{\partial \mu_x} & \frac{\partial \theta_m'}{\partial \mu_y} & \frac{\partial \theta_m'}{\partial \mu_z} & \frac{\partial \theta_m'}{\partial \mu_{\psi}}\\
-        \frac{\partial \psi_m'}{\partial \mu_x} & \frac{\partial \psi_m'}{\partial \mu_y} & \frac{\partial \psi_m'}{\partial \mu_z} & \frac{\partial \psi_m'}{\partial \mu_{\psi}}
-    \end{bmatrix}
-    \label{eq:chater2:correction:markers:jacobian_wrt_state}\\
-    \frac{\partial h_i(\hat\mu)}{\partial \mu_m} &= \begin{bmatrix}
-        \frac{\partial x_m'}{\partial \mu_{m_i, x}} & \frac{\partial x_m'}{\partial \mu_{m_i, y}} & \frac{\partial x_m'}{\partial \mu_{m_i, z}} & \frac{\partial x_m'}{\partial \mu_{m_i, \phi}} & \frac{\partial x_m'}{\partial \mu_{m_i, \theta}} & & \frac{\partial x_m'}{\partial \mu_{m_i, \psi}}\\
-        \frac{\partial y_m'}{\partial \mu_{m_i, x}} & \frac{\partial y_m'}{\partial \mu_{m_i, y}} & \frac{\partial y_m'}{\partial \mu_{m_i, z}} & \frac{\partial y_m'}{\partial \mu_{m_i, \phi}} & \frac{\partial y_m'}{\partial \mu_{m_i, \theta}} & & \frac{\partial y_m'}{\partial \mu_{m_i, \psi}}\\
-        \frac{\partial z_m'}{\partial \mu_{m_i, x}} & \frac{\partial z_m'}{\partial \mu_{m_i, y}} & \frac{\partial z_m'}{\partial \mu_{m_i, z}} & \frac{\partial z_m'}{\partial \mu_{m_i, \phi}} & \frac{\partial z_m'}{\partial \mu_{m_i, \theta}} & & \frac{\partial z_m'}{\partial \mu_{m_i, \psi}}\\
-        \frac{\partial \phi_m'}{\partial \mu_{m_i, x}} & \frac{\partial \phi_m'}{\partial \mu_{m_i, y}} & \frac{\partial \phi_m'}{\partial \mu_{m_i, z}} & \frac{\partial \phi_m'}{\partial \mu_{m_i, \phi}} & \frac{\partial \phi_m'}{\partial \mu_{m_i, \theta}} & & \frac{\partial \phi_m'}{\partial \mu_{m_i, \psi}}\\
-        \frac{\partial \theta_m'}{\partial \mu_{m_i, x}} & \frac{\partial \theta_m'}{\partial \mu_{m_i, y}} & \frac{\partial \theta_m'}{\partial \mu_{m_i, z}} & \frac{\partial \theta_m'}{\partial \mu_{m_i, \phi}} & \frac{\partial \theta_m'}{\partial \mu_{m_i, \theta}} & & \frac{\partial \theta_m'}{\partial \mu_{m_i, \psi}}\\
-        \frac{\partial \psi_m'}{\partial \mu_{m_i, x}} & \frac{\partial \psi_m'}{\partial \mu_{m_i, y}} & \frac{\partial \psi_m'}{\partial \mu_{m_i, z}} & \frac{\partial \psi_m'}{\partial \mu_{m_i, \phi}} & \frac{\partial \psi_m'}{\partial \mu_{m_i, \theta}} & & \frac{\partial \psi_m'}{\partial \mu_{m_i, \psi}}
-    \end{bmatrix}
-    \label{eq:chater2:correction:markers:jacobian_wrt_marker}
+    \label{eq:chater2:correction:markers:jacobian}
 \end{align}
-These two matrices may look scary at first sight, however, half of their elements are 0 as can be seen in the Appendix~\ref{appendixa}.\\
+
+The Jacobian matrices of the observation model with respect to the drone state and with respect the marker pose can be seen in Appendix~\ref{appendix:a}. It is worth to mention that the reason why this matrix only contains two sections different to zero is because of the relations between markers: observing a marker does not affect the pose of others, and therefore, the Jacobians of the observation model for marker $i$ with respect to marker $i+1$ or any other marker is 0.\\
 
 Furthermore, unlike the case of poles, the markers' pose is unknown the first time, and therefore the algorithm will introduce their pose into the state vector when the drone sees a previously unknown marker.
+
 \subsubsection{Adding new Markers}
 \label{subsubsec:chapter2:correction:markers:add}
+\nocite{slam-auto-mob-robots}
+As mentioned in Section~\ref{subsec:chapter1:slam:ekfslam:addlandmarks}, to add new landmarks to the state vector an inverse observation model is needed. In the current case, the inverse observation model will project the observed marker's pose from the camera reference frame to the world reference frame. Equation~\ref{eq:chapter2:correction:markers:inverseh} shows the inverse observation model for markers where, similarly to the observation model, a set of transformations are performed but, this time, in order to obtain the pose of the seen marker in the world reference frame:
+\begin{align}
+    \begin{bmatrix}
+        m_{i, x}^w \\ m_{i, y}^w \\ m_{i, z}^w \\ m_{i, \phi}^w \\ m_{i, \theta}^w \\ m_{i, \psi}^w
+    \end{bmatrix} &= \bm{T_r} * \bm{T_c} * \bm{T_m}
+    \label{eq:chapter2:correction:markers:inverseh}
+\end{align}
+
+As before, $\bm{T_r}$ is the homogeneous transformation matrix of the drone's pose, $\bm{T_c}$ is the homogeneous transformation matrix of the camera's pose, and $\bm{T_m}$ is the homogeneous transformation of the marker's pose. The result is a vector containing the marker's pose in the world reference frame, and with which will extend the state vector:
+\begin{align*}
+    \mu_t = \left[\begin{array}{c|cccccc}
+        \mu_t & m_{i, x}^w & m_{i, y}^w & m_{i, z}^w & m_{i, \phi}^w & m_{i, \theta}^w & m_{i, \psi}^w
+    \end{array}
+    \right]^T
+\end{align*}
+
+Furthermore, the covariance matrix should be updated in order to contain the newly added marker. As shown in equation~\ref{eq:chapter1:slam:ekfslam:cov_update}, the Jacobian of the inverse observation model with respect to the drone's state and the Jacobian of the inverse observation model with respect to the marker's state are needed. Both Jacobian matrices can be seen in Appendix~\ref{appendix:a}. In this case, the matrix $\bm{Y_x}$ has a size of ($\norm{\mu}+6) \times (\norm{\mu})$ where $\norm{\mu}$ is the size of the state vector before adding the projected pose of the seen marker. On the other hand, the matrix $\bm{Y_z}$ has a size of $(\norm{\mu}+6) \times 6$. Given these two matrices, the new covariance matrix $\Sigma$ will be increased by 6 columns and 6 rows and will have the following form:
+\begin{align*}
+    \Sigma = \begin{bmatrix}
+        \Sigma_{r,r} & \Sigma_{r,m} \\ \Sigma_{r,m} & \Sigma_{m,m}
+    \end{bmatrix}
+\end{align*}
+where $\Sigma_{r,r}$ is the covariance matrix between the drone's state variables, the $\Sigma_{r,m}$ and $\Sigma_{m,r}$ is the covariance matrix between the drone and the markers' state variables, and between the markers and the drone's state variables, and $\Sigma_{m,m}$ is the covariance matrix between markers' state variables.
 
 \section{Normalized Estimation Error Squared}
 \label{sec:chapter2:nees}
+The Mahalanobis distance is a measure of the distance between a point and a distribution. It is a way to measure how many standard deviations is away the point from the mean of the distribution. The Mahalanobis distance of an observation $\bm{x} = \begin{bmatrix}x_1 & x_2 & \dots \end{bmatrix}$ with mean $\bm{\mu} = \begin{bmatrix}\mu_1 & \mu_2 & \dots \end{bmatrix}$, and covariance matrix $\Sigma$ is defined as:
+\begin{equation}
+    D = \sqrt{\left(\bm{x} - \bm{\mu}\right) \Sigma^{-1} \left(\bm{x} - \bm{\mu}\right)}
+\end{equation}\\
+Every time the drone observes a pole or a marker, a node responsible of identifying the landmark processes the features that distinguish it with respect to other landmarks, and publishes these features as a message. In the case of poles, the message type is \inlinesrc{ekf_localization::RangeAndBearingPole}, which contains the range and bearing information, and in the case of markers the message type is \inlinesrc{geometry_msgs::Pose}, which contains the position and orientation information of the observed marker. Given this, each observation $z$ for a pole, is composed by three measurements, and each observation of a marker is composed by six measurements. After observing a landmark the Algorithm~(\ref{alg:chapter1:slam:ekfslam}) calculates the discrepancy between the observation $i$ and the predicted observation by the innovation ($v^i$), and its covariance ($S$), as
+\begin{align*}
+    v^i =  z_t^i - h^i \left( \hat\mu_t \right)\\
+    S = H_t^i \hat\Sigma_t H_t^{iT} + Q_t
+\end{align*}
+
+The square of the Mahalanobis distance can be used in order to establish a correspondence between the observed measurements with the landmark features if the following is hold:
+\begin{align}
+    D_i^2 = v^i S^{-1} v^i < \chi_{d, 1-\alpha}^2
+    \label{eq:chapter2:nees:innov_test}
+\end{align}
+where $d$ is the size of $h^i$ and $1-\alpha$ is the desired confidence level. This test is called individual compatibility, and when applied to the predicted state can be used to determine the subset of observation features that are compatible with the observation.\\
+
+Furthermore, a state estimate is consistent if its state estimation error $\bm{x} - \bm{\hat{x}}$ satisfies
+\begin{align*}
+    \mathbb{E}\left[\bm{x} - \bm{\hat{x}}\right] = 0\\
+    \mathbb{E}\left[\left(\bm{x} - \bm{\hat{x}}\right)\left(\bm{x} - \bm{\hat{x}}\right)^T\right] \le \Sigma
+\end{align*}
+When the ground truth $\bm{x}$ is available, a \ac{NEES} can be performed to check the consistency of the filter. NEES test can be defined as the squared Mahalanobis distance for the difference between $\bm{x}$ and $\bm{\hat{x}}$, and consistency can be checked with a $\chi^2$ test
+\begin{align*}
+    NEES = \left(\bm{x} - \bm{\hat{x}}\right) \Sigma^{-1} \left(\bm{x} - \bm{\hat{x}}\right) \le \chi_{d, 1-\alpha}^2
+\end{align*}
+
+However, the ground truth is only available in simulated environments thus, the consistency of the filter is maintained by using observations that satisfy the test in equation~(\ref{eq:chapter2:nees:innov_test}). This way, the filter will discard observations that do not satisfy the innovation test, maintaining a consistent estimation of the state and therefore, the map.
 
 \section{Overall Architecture}
 \label{sec:chapter2:arch}
+The system is composed by several ROS nodes that specialize and perform a wide range of operations. However, what is most interesting for this work is the node that is in charge of the EKF-SLAM process. \\
+
+In Figure~\ref{fig:chapter2:architecture:components} the components that interact around the EKF Localization node can be seen. In the center of the figure the \inlinesrc{EKFSLAM} component is placed, which is responsible of running the EKF-SLAM algorithm. Every time an \inlinesrc{Odometry} message arrives, the prediction step takes place, and this happens every 30Hz. Furthermore, every time a \inlinesrc{RangeAndBearingPoles} or a \inlinesrc{QRCodeStamped} arrives the correction step takes place, and differently to the prediction step, this depends on whether the drone observes or not a pole or a marker. Additionally, the \inlinesrc{EKFSLAM} component provides three services:
+\begin{enumerate}
+    \item \inlinesrc{get_drone_state}: takes no arguments, and returns the current localization of the drone \inlinesrc{geometry_msgs::Pose} message.
+    \item \inlinesrc{get_marker_state}: takes as argument the id of a marker, and returns the current estimated pose of that marker\inlinesrc{geometry_msgs::Pose} message.
+    \item \inlinesrc{save_map}: takes no arguments, and it saves the current map in a YAML file. The map contains the pose of all the poles and all the markers seen so far.
+\end{enumerate}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=\textwidth]{Figures/fig9-components_diagram}
+    \caption[Components diagram of the EKF Localization node]{Components diagram of the EKF Localization node. The \inlinesrc{EKFSLAM} class subscribes to different messages, between them the \inlinesrc{nav_msgs::Odometry} messages are used as control variables, while the \inlinesrc{ekf_localization::RangeAndBearingPole} and \inlinesrc{ekf_localization::QRCodeStamped} messages are used every time the drone observes a pole or a marker. Moreover, \inlinesrc{EKFSLAM} class publishes two types of messages: \inlinesrc{nav_msgs::Odometry} which provides the filtered localization and \inlinesrc{ekf_localization::QRCodeStampedArray} which contains a list markers' poses.}
+    \label{fig:chapter2:architecture:components}
+\end{figure}
+
+It is worth to mention that the messages of type \inlinesrc{ekf_localization::QRCodeStamped} are provided by the \inlinesrc{QRCode} node which is internal to the \inlinesrc{ekf_localization} package. This node is needed because the \inlinesrc{visp_auto_tracker}, responsible of identifying the markers and publish their poses, publish these data as separate messages: the marker's id as a \inlinesrc{std_msgs::String} message and the pose as a \inlinesrc{geometry_msgs::PoseStamped} message. Due to this situation, the \inlinesrc{QRCode} node is responsible of match both data together and publish an \inlinesrc{ekf_localization::QRCodeStamped} message which contains the marker's identifier and its pose.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.5\textwidth]{Figures/fig10-class_diagram}
+    \caption[Class diagram of the EKFSLAM node]{Class diagram of the EKFSLAM node. The \inlinesrc{EKFSLAM} class is composed by a \inlinesrc{MapManager} instance, which is composed by a list of \inlinesrc{Landmarks}. The \inlinesrc{Landmark} class is abstract and its concrete classes are \inlinesrc{Pole} and \inlinesrc{Marker}.}
+    \label{fig:chapter2:architecture:class}
+\end{figure}
+
+The main element of the EKF-SLAM node is the \inlinesrc{EKFSLAM} class which is responsible of keeping track of the state vector and execute the EKF-SLAM algorithm. This class inherit from an abstract class called \inlinesrc{EKF}, which is responsible of the implementation of the algorithm in a generic way, while the specifics for the current problem is contained in its child.\\
+
+There are several components that interact within \inlinesrc{EKFSLAM} class, but probably the most interesting one is the \inlinesrc{MapManager} class. This class is responsible of maintaining an updated map of the environment with all the poles and markers, and to save and retrieve the map from a YAML file.\\
+
+The \inlinesrc{MapManager} class contains a list of \inlinesrc{Landmark}s, and every time the state vector is updated in \inlinesrc{EKFSLAM} class, the \inlinesrc{MapManager} class updates the information about each \inlinesrc{Marker}. As mentioned before, the pose of each pole is known and needs no update. Furthermore, the \inlinesrc{Landmark} class is specialized in a \inlinesrc{Marker} class and a \inlinesrc{Pole} class, each of which is responsible of provide the observation model associated to it and the needed Jacobian matrices for the algorithm, hiding the implementation to the \inlinesrc{EKFSLAM} class.
+
 \subsection{ROS nodes}
 \label{subsec:chapter2:arch:nodes}
+Regarding the ROS node that comprise the system, in Figure~\ref{fig:chapter2:architecture:nodes:all} all the ones that interact with the localization node are shown. The EKF-SLAM node is called \inlinesrc{/ekf_localization_node}, and as mentioned before, it interacts with \inlinesrc{/mavros} node, all the poles identification nodes (\inlinesrc{/poles_vision_#}), the \inlinesrc{/qr_code_node} which publishes the markers position with its identifier, and the \inlinesrc{/rtabmap} node that provides the Octomap messages. \\
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{Figures/fig11-rosgraph_all}
+    \caption[ROS graph of the system]{ROS graph of the system. Nodes are depicted as ellipses, while message topics are depicted as boxes. Each arrow means that a node publishes or subscribes to a specific message topic.}
+    \label{fig:chapter2:architecture:nodes:all}
+\end{figure}
+As mentioned, the Figure~\ref{fig:chapter2:architecture:nodes:all} shows all the nodes (depicted as ellipses) with its interactions: a node publishes a message topic, and the topic is consumed by a node. This interaction is represented by the arrows, where an incoming arrow means that a node subscribes to the message topic, while an outgoing arrow means that the node publishes that message topic. Arrows go from a node to a topic or from a topic to a node, but do not go from node to node. Its reason lies on the fact that nodes interact between each other using a message passing interface as mention in Section~\ref{sec:chapter1:ros}. Furthermore, it is worth to mention that in Figure~\ref{fig:chapter2:architecture:nodes:all} a \inlinesrc{/gazebo} node is present. This node appears only on simulation and represents the simulated environment, that is why it publishes all the cameras and stereo cameras information.\\
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\textwidth]{Figures/fig12-rosgraph_ekf_node}
+    \caption[Detail of the EKF-SLAM node interactions]{Detail of the EKF-SLAM node interactions}
+    \label{fig:chapter2:architecture:nodes:ekf_node}
+\end{figure}
+
+Figure~\ref{fig:chapter2:architecture:nodes:ekf_node} shows the detail for the \inlinesrc{/ekf_localization_node} with all its subscriptions. It is worth to mention the \inlinesrc{/qr_code_node}, which subscribes to \inlinesrc{/visp_auto_tracker/code_message} and \inlinesrc{/visp_auto_tracker/object_position}, and publishes a \inlinesrc{/visp_auto_tracker/stamped_object_position}.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
