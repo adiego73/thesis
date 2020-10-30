@@ -365,26 +365,24 @@ The main element of the EKF-SLAM node is the \inlinesrc{EKFSLAM} class which is 
 There are several components that interact within \inlinesrc{EKFSLAM} class, but probably the most interesting one is the \inlinesrc{MapManager} class. This class is responsible of maintaining an updated map of the environment with all the poles and markers, and to save and retrieve the map from a YAML file.\\
 
 The \inlinesrc{MapManager} class contains a list of \inlinesrc{Landmark}s, and every time the state vector is updated in \inlinesrc{EKFSLAM} class, the \inlinesrc{MapManager} class updates the information about each \inlinesrc{Marker}. As mentioned before, the pose of each pole is known and needs no update. Furthermore, the \inlinesrc{Landmark} class is specialized in a \inlinesrc{Marker} class and a \inlinesrc{Pole} class, each of which is responsible of provide the observation model associated to it and the needed Jacobian matrices for the algorithm, hiding the implementation to the \inlinesrc{EKFSLAM} class.
-
 \subsection{ROS nodes}
 \label{subsec:chapter2:arch:nodes}
 Regarding the ROS node that comprise the system, in Figure~\ref{fig:chapter2:architecture:nodes:all} all the ones that interact with the localization node are shown. The EKF-SLAM node is called \inlinesrc{/ekf_localization_node}, and as mentioned before, it interacts with \inlinesrc{/mavros} node, all the poles identification nodes (\inlinesrc{/poles_vision_#}), the \inlinesrc{/qr_code_node} which publishes the markers position with its identifier, and the \inlinesrc{/rtabmap} node that provides the Octomap messages. \\
+
+As mentioned, the Figure~\ref{fig:chapter2:architecture:nodes:all} shows all the nodes (depicted as ellipses) with its interactions: a node publishes a message topic, and the topic is consumed by a node. This interaction is represented by the arrows, where an incoming arrow means that a node subscribes to the message topic, while an outgoing arrow means that the node publishes that message topic. Arrows go from a node to a topic or from a topic to a node, but do not go from node to node. Its reason lies on the fact that nodes interact between each other using a message passing interface as mention in Section~\ref{sec:chapter1:ros}. Furthermore, it is worth to mention that in Figure~\ref{fig:chapter2:architecture:nodes:all} a \inlinesrc{/gazebo} node is present. This node appears only on simulation and represents the simulated environment, that is why it publishes all the cameras and stereo cameras information.\\
 \begin{figure}[H]
     \centering
     \includegraphics[width=\textwidth]{Figures/fig11-rosgraph_all}
     \caption[ROS graph of the system]{ROS graph of the system. Nodes are depicted as ellipses, while message topics are depicted as boxes. Each arrow means that a node publishes or subscribes to a specific message topic.}
     \label{fig:chapter2:architecture:nodes:all}
 \end{figure}
-As mentioned, the Figure~\ref{fig:chapter2:architecture:nodes:all} shows all the nodes (depicted as ellipses) with its interactions: a node publishes a message topic, and the topic is consumed by a node. This interaction is represented by the arrows, where an incoming arrow means that a node subscribes to the message topic, while an outgoing arrow means that the node publishes that message topic. Arrows go from a node to a topic or from a topic to a node, but do not go from node to node. Its reason lies on the fact that nodes interact between each other using a message passing interface as mention in Section~\ref{sec:chapter1:ros}. Furthermore, it is worth to mention that in Figure~\ref{fig:chapter2:architecture:nodes:all} a \inlinesrc{/gazebo} node is present. This node appears only on simulation and represents the simulated environment, that is why it publishes all the cameras and stereo cameras information.\\
+Figure~\ref{fig:chapter2:architecture:nodes:ekf_node} shows the detail for the \inlinesrc{/ekf_localization_node} with all its subscriptions. It is worth to mention the \inlinesrc{/qr_code_node}, which subscribes to \inlinesrc{/visp_auto_tracker/code_message} and \inlinesrc{/visp_auto_tracker/object_position}, and publishes a \inlinesrc{/visp_auto_tracker/stamped_object_position}.
 \begin{figure}[h]
     \centering
     \includegraphics[width=0.8\textwidth]{Figures/fig12-rosgraph_ekf_node}
-    \caption[Detail of the EKF-SLAM node interactions]{Detail of the EKF-SLAM node interactions}
+    \caption[Detail of the EKF-SLAM node interactions]{Detail of the EKF-SLAM node interactions. Beside the \inlinesrc{/ekf_localization_node}, the \inlinesrc{/qr_node_code} can be seen. This node, is responsible of subscribing the \inlinesrc{/visp_auto_tracker} messages in order to, then, publish the identifier along with the pose of the marker that has been seen. On the other hand, the \inlinesrc{/ekf_localization_node} subscribes to the \inlinesrc{/mavros}, \inlinesrc{/octomap}, \inlinesrc{/pole_localization} and \inlinesrc{/visp_auto_tracker} messages.}
     \label{fig:chapter2:architecture:nodes:ekf_node}
 \end{figure}
-
-Figure~\ref{fig:chapter2:architecture:nodes:ekf_node} shows the detail for the \inlinesrc{/ekf_localization_node} with all its subscriptions. It is worth to mention the \inlinesrc{/qr_code_node}, which subscribes to \inlinesrc{/visp_auto_tracker/code_message} and \inlinesrc{/visp_auto_tracker/object_position}, and publishes a \inlinesrc{/visp_auto_tracker/stamped_object_position}.
-
 
 
 

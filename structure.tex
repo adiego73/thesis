@@ -20,6 +20,10 @@
 \usepackage{multirow}
 \usepackage[shortlabels]{enumitem}
 \usepackage[super]{nth}
+\usepackage{caption}
+
+\captionsetup[figure]{labelfont=bf, font=small}
+\captionsetup[table]{labelfont=bf, font=small}
 
 
 \hypersetup{colorlinks, breaklinks, linkcolor=black,citecolor=black,filecolor=black,urlcolor=black} % Set up hyperlinks including colors for references, urls and citations
@@ -27,7 +31,7 @@
 %\definecolor{c64}{rgb}{.063,0,.612} % Example color definition, the color can be used with the \color{name} command
 
 \makeatletter
-\renewcommand{\fnum@figure}{\textsc{\figurename~\thefigure}} % Make the "Figure 1.1" text in small caps
+\renewcommand{\fnum@figure}{\figurename~\thefigure} % Make the "Figure 1.1" text in small caps
 \makeatother
 
 %----------------------------------------------------------------------------------------
