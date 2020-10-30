@@ -198,6 +198,10 @@ where the diagonal elements $\sigma_{1..n}$ are the standard deviation of the se
 
 As shown in Algorithm~\ref{alg:chapter1:slam:ekfslam} several steps are followed during the correction part of the algorithm. After computing the observation model and its Jacobian matrix, the Kalman gain and the innovation should be calculated, and finally, the state vector and covariance matrix updates should be done.
 
+\subsection{Observation model for laser range}
+\label{subsec:chapter2:correction:range}
+Observation model of laser range
+
 \subsection{Observation model for Poles}
 \label{subsec:chapter2:correction:poles}
 In the case of Poles, a range and bearing method is used. In this case, since the poles have a known position, their information is not kept in the state vector and therefore, this information will be used for localization purposes.\\
@@ -299,6 +303,9 @@ Furthermore, the covariance matrix should be updated in order to contain the new
     \end{bmatrix}
 \end{align*}
 where $\Sigma_{r,r}$ is the covariance matrix between the drone's state variables, the $\Sigma_{r,m}$ and $\Sigma_{m,r}$ is the covariance matrix between the drone and the markers' state variables, and between the markers and the drone's state variables, and $\Sigma_{m,m}$ is the covariance matrix between markers' state variables.
+
+\section{Visual process pipeline}
+\label{sec:chapter2:visual}
 
 \section{Overall Architecture}
 \label{sec:chapter2:arch}

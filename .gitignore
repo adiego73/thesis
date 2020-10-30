@@ -8,3 +8,5 @@
 *.out
 *.synctex.gz
 *.toc
+*-blx.bib
+*.run.xml
