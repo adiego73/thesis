@@ -1,4 +1,5 @@
-\chapter{Theoretical Background}
+\cleardoublepage
+\chapter{Background}
 \label{ch:chapter1}
 
 \section{Robot Operating System}
@@ -54,7 +55,15 @@ something about octomap
 
 \section{Transformations}
 \label{sec:chapter1:transform}
-something about matrices
+
+\subsection{Translation}
+\label{subsec:chapter1:transform:translation}
+
+\subsection{Rotation}
+\label{subsec:chapter1:transform:rotation}
+
+\subsection{Homogeneous Transform}
+\label{subsec:chapter1:transform:rototranslation}
 
 \section{Kalman Filter}
 \label{sec:chapter1:kf}
@@ -96,9 +105,9 @@ The second step (from line 3 to 5) starts by calculating $K_t$, the Kalman gain,
 
 The linearity conditions that make the KF to work are, in some cases, far from reality: state transition functions and measurements are rarely linear in practice. The \ac{EKF} works through a process of linearization, where nonlinear state transition and observation functions are approximated by a Taylor series expansion. \\
 
-\begin{figure}[h]
+\begin{figure}
     \centering
-    \includegraphics{Figures/fig1-kf-ekf.png}
+    \includegraphics[width=\textwidth]{Images/fig1-kf-ekf.png}
     \caption[Linear and nonlinear transformation of a Gaussian random variable]{Linear \textbf{(a)} and nonlinear \textbf{(b)} transformation of a Gaussian random variable. The lower right plot shows the density function of the random variable. The upper right plot shows the transformation of the random variable. The upper left plot shows the resulting density function. \cite{prob-robotics}}
     \label{fig:chapter1:kf:ekf:cmp-kf-ekf}
 \end{figure}
@@ -133,7 +142,7 @@ where $h'$ is the Jacobian of $h$, usually expressed as $H_t$. In this case, the
 
 \begin{figure}[h]
     \centering
-    \includegraphics{Figures/fig2-ekf-linearization.png}
+    \includegraphics{Images/fig2-ekf-linearization.png}
     \caption[Linearization applied in EKF]{Linearization applied in EKF. In this case, the nonlinear function $g$ is approximated using first order Taylor expansion, that is a linear function tangent to $g$ at the mean of the original density function. The linearization is not perfect, so it adds an error, depicted in the upper left plot. This error is the difference between the dashed line and the solid line. \cite{prob-robotics}}
     \label{fig:chapter1:kf:ekf:ekf-linearization}
 \end{figure}
@@ -174,10 +183,9 @@ While this process can be done by manually moving the robot around the environme
 
 \nocite{intro-aut-mobile-robots}
 On the other hand, assuming that the robot already knows the map, the localization problem could be trivial if no noise is present at all. The sensors, wheel encoders, different kinds of terrain, battery life, etc, all of these can make the robot to increase its uncertainty related to where it is. As robot moves around the environment it uses its sensors to estimate its position, increasing its uncertainty regarding its position relative to the map. At some point, the robot will "see" a known landmark or feature in the environment, correcting its position while reducing the uncertainty.\\
-
-\begin{figure}[h]
+\begin{figure}
     \centering
-    \includegraphics{Figures/fig3-slam.png}
+    \includegraphics[width=\textwidth]{Images/fig3-slam.png}
     \caption[Example of SLAM problem]{At the beginning \textbf{(a)} the robot has low uncertainty regarding its pose. As it moves around the environment its uncertainty, represented by the dark gray ellipsis, grows \textbf{(b), (c), (d)}, until it sees a known landmark \textbf{(e)}, making the position uncertainty to shrink. \cite{intro-aut-mobile-robots}}
     \label{fig:chapter1:slam}
 \end{figure}
@@ -258,42 +266,42 @@ So far, the existence and accuracy of a map was assumed. Nevertheless, this is n
 
 The inverse observation model will produce the coordinates of the new landmark in the map, and this information will be added to the state vector, which will increase its size (in this case) by two new elements.
 \begin{align}
-    h^{-1}\left(\mathbf{x_r}, \mathbf{z}\right) &= \begin{bmatrix}
+    h^{-1}\left(\bm{x_r}, \bm{z}\right) &= \begin{bmatrix}
         x_l \\ y_l
     \end{bmatrix}
     \label{eq:chapter1:slam:ekfslam:inverseh}\\
-    \mathbf{x_t} = y\left(\mathbf{x}, \mathbf{z}\right) &= \begin{bmatrix}
-        \mathbf{x} \\ h^{-1}\left(\mathbf{x_r}, \mathbf{z}\right)
+    \bm{x_t} = y\left(\bm{x}, \bm{z}\right) &= \begin{bmatrix}
+        \bm{x} \\ h^{-1}\left(\bm{x_r}, \bm{z}\right)
     \end{bmatrix}
     \label{eq:chapter1:slam:ekfslam:extension_y}
 \end{align}
-In equation~(\ref{eq:chapter1:slam:ekfslam:inverseh}) $\mathbf{x_r}$ refers to the elements in the state vector that corresponds to the robot's pose, and $\mathbf{z}$ refers to the observation elements, which can be, for example, range and bearing data. Since the state vector has a variable length, extending the covariance matrix is also needed whenever the robot sees a landmark that has not being seen previously. The extension of the covariance matrix is achieved as shown in equation~(\ref{eq:chapter1:slam:ekfslam:cov_update}).
+In equation~(\ref{eq:chapter1:slam:ekfslam:inverseh}) $\bm{x_r}$ refers to the elements in the state vector that corresponds to the robot's pose, and $\bm{z}$ refers to the observation elements, which can be, for example, range and bearing data. Since the state vector has a variable length, extending the covariance matrix is also needed whenever the robot sees a landmark that has not being seen previously. The extension of the covariance matrix is achieved as shown in equation~(\ref{eq:chapter1:slam:ekfslam:cov_update}).
 \begin{align}
-    \mathbf{\hat\Sigma} = \mathbf{Y_x} \mathbf{\Sigma} \mathbf{Y_x}^T + \mathbf{Y_z} \mathbf{Q}_t \mathbf{Y_z}^T
+    \hat{\bm{\Sigma}} = \bm{Y_x} \bm{\Sigma} \bm{Y_x}^T + \bm{Y_z} \bm{Q}_t \bm{Y_z}^T
     \label{eq:chapter1:slam:ekfslam:cov_update}\\
-    \mathbf{Y_x} = \frac{\partial y}{\partial x} = \begin{bmatrix}
+    \bm{Y_x} = \frac{\partial y}{\partial x} = \begin{bmatrix}
         \frac{\partial x}{\partial x} \\ \frac{\partial h^{-1}}{\partial x}
     \end{bmatrix} = \begin{bmatrix}
-    \mathbf{I} \\ \mathbf{G_x}
+    \bm{I} \\ \bm{G_x}
     \end{bmatrix}
     \label{eq:chapter1:slam:ekfslam:yx}\\
-    \mathbf{Y_z} = \frac{\partial y}{\partial z} = \begin{bmatrix}
+    \bm{Y_z} = \frac{\partial y}{\partial z} = \begin{bmatrix}
         \frac{\partial x}{\partial z} \\ \frac{\partial h^{-1}}{\partial z}
     \end{bmatrix} = \begin{bmatrix}
-        \mathbf{0} \\ \mathbf{G_z}
+        \bm{0} \\ \bm{G_z}
     \end{bmatrix}
     \label{eq:chapter1:slam:ekfslam:yz}
 \end{align}
-where matrices $\mathbf{Gx}$ and $\mathbf{Gz}$ are the Jacobian of function $h^{-1}$ with respect to the state vector and the observation vector respectively. By substituting the Jacobians in equations (\ref{eq:chapter1:slam:ekfslam:yx}) and (\ref{eq:chapter1:slam:ekfslam:yz}) into equation~(\ref{eq:chapter1:slam:ekfslam:cov_update}), the following matrix is obtained:
+where matrices $\bm{Gx}$ and $\bm{Gz}$ are the Jacobian of function $h^{-1}$ with respect to the state vector and the observation vector respectively. By substituting the Jacobians in equations (\ref{eq:chapter1:slam:ekfslam:yx}) and (\ref{eq:chapter1:slam:ekfslam:yz}) into equation~(\ref{eq:chapter1:slam:ekfslam:cov_update}), the following matrix is obtained:
 \begin{align}
-    \mathbf{\hat{\Sigma}} = \begin{bmatrix}
-        \mathbf{\Sigma} & \mathbf{\Sigma} \mathbf{G_x}^T \\
-        \mathbf{G_x} \mathbf{\Sigma} & \mathbf{G_x} \mathbf{\Sigma} \mathbf{G_x}^T + \mathbf{G_z} \mathbf{Q}_t \mathbf{G_z}^T
+    \hat{\bm{\Sigma}} = \begin{bmatrix}
+        \bm{\Sigma} & \bm{\Sigma} \bm{G_x}^T \\
+        \bm{G_x} \bm{\Sigma} & \bm{G_x} \bm{\Sigma} \bm{G_x}^T + \bm{G_z} \bm{Q}_t \bm{G_z}^T
     \end{bmatrix}
     \label{eq:chapter1:slam:ekfslam:cov_update_full}
 \end{align}\\
 
-The linearized covariance update can be factored as shown in equation~(\ref{eq:chapter1:slam:ekfslam:factoring}) by assuming that $A \equiv 1$, $B \equiv 0$, $C \equiv 0$ and $D \equiv \mathbf{G_z}$
+The linearized covariance update can be factored as shown in equation~(\ref{eq:chapter1:slam:ekfslam:factoring}) by assuming that $A \equiv 1$, $B \equiv 0$, $C \equiv 0$ and $D \equiv \bm{G_z}$
 \begin{align}
     \begin{bmatrix}
         A & B \\ C & D
@@ -306,12 +314,43 @@ The linearized covariance update can be factored as shown in equation~(\ref{eq:c
             CPA^T + DQB^T & CPC^T + DQD^T
     \end{bmatrix}
     \label{eq:chapter1:slam:ekfslam:factoring}\\
-    \mathbf{\hat\Sigma} &= \begin{bmatrix}
-        \mathbf{1} & \mathbf{0} \\ \mathbf{G_x} & \mathbf{G_z}
+    \hat{\bm{\Sigma}} &= \begin{bmatrix}
+        \bm{1} & \bm{0} \\ \bm{G_x} & \bm{G_z}
     \end{bmatrix} \begin{bmatrix}
-        \mathbf{\Sigma} & \mathbf{0} \\ \mathbf{0} & \mathbf{Q}_t
+        \bm{\Sigma} & \bm{0} \\ \bm{0} & \bm{Q}_t
     \end{bmatrix} \begin{bmatrix}
-        \mathbf{1} & \mathbf{0} \\ \mathbf{G_x} & \mathbf{G_z}
+        \bm{1} & \bm{0} \\ \bm{G_x} & \bm{G_z}
     \end{bmatrix}^T
     \label{eq:chapter1:slam:ekfslam:factored_cov_update}\\
 \end{align}
+
+\section{Normalized Estimation Error Squared}
+\label{sec:chapter2:nees}
+The Mahalanobis distance is a measure of the distance between a point and a distribution. It is a way to measure how many standard deviations is away the point from the mean of the distribution. The Mahalanobis distance of an observation $\bm{x} = \begin{bmatrix}x_1 & x_2 & \dots \end{bmatrix}$ with mean $\bm{\mu} = \begin{bmatrix}\mu_1 & \mu_2 & \dots \end{bmatrix}$, and covariance matrix $\Sigma$ is defined as:
+\begin{equation}
+    D = \sqrt{\left(\bm{x} - \bm{\mu}\right) \Sigma^{-1} \left(\bm{x} - \bm{\mu}\right)}
+\end{equation}\\
+Every time the drone observes a pole or a marker, a node responsible of identifying the landmark processes the features that distinguish it with respect to other landmarks, and publishes these features as a message. In the case of poles, the message type is \inlinesrc{RangeAndBearingPole}, which contains the range and bearing information, and in the case of markers the message type is \inlinesrc{Pose}, which contains the position and orientation information of the observed marker. Given this, each observation $z$ for a pole, is composed by three measurements, and each observation of a marker is composed by six measurements. After observing a landmark the Algorithm~(\ref{alg:chapter1:slam:ekfslam}) calculates the discrepancy between the observation $i$ and the predicted observation by the innovation ($v^i$), and its covariance ($S$), as
+\begin{align*}
+    v^i =  z_t^i - h^i \left( \hat\mu_t \right)\\
+    S = H_t^i \hat\Sigma_t H_t^{iT} + Q_t
+\end{align*}
+
+The square of the Mahalanobis distance can be used in order to establish a correspondence between the observed measurements with the landmark features if the following is hold:
+\begin{align}
+    D_i^2 = v^i S^{-1} v^i < \chi_{d, 1-\alpha}^2
+    \label{eq:chapter2:nees:innov_test}
+\end{align}
+where $d$ is the size of $h^i$ and $1-\alpha$ is the desired confidence level. This test is called individual compatibility, and when applied to the predicted state can be used to determine the subset of observation features that are compatible with the observation.\\
+
+Furthermore, a state estimate is consistent if its state estimation error $\bm{x} - \hat{\bm{x}}$ satisfies
+\begin{align*}
+    \mathbb{E}\left[\bm{x} - \hat{\bm{x}}\right] = 0\\
+    \mathbb{E}\left[\left(\bm{x} - \hat{\bm{x}}\right)\left(\bm{x} - \hat{\bm{x}}\right)^T\right] \le \Sigma
+\end{align*}
+When the ground truth $\bm{x}$ is available, a \ac{NEES} can be performed to check the consistency of the filter. NEES test can be defined as the squared Mahalanobis distance for the difference between $\bm{x}$ and $\hat{\bm{x}}$, and consistency can be checked with a $\chi^2$ test
+\begin{align*}
+    NEES = \left(\bm{x} - \hat{\bm{x}}\right) \Sigma^{-1} \left(\bm{x} - \hat{\bm{x}}\right) \le \chi_{d, 1-\alpha}^2
+\end{align*}
+
+However, the ground truth is only available in simulated environments thus, the consistency of the filter is maintained by using observations that satisfy the test in equation~(\ref{eq:chapter2:nees:innov_test}). This way, the filter will discard observations that do not satisfy the innovation test, maintaining a consistent estimation of the state and therefore, the map.
