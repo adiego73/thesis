@@ -14,6 +14,13 @@ Nodes are processes that perform a specific computation. In the system the nodes
 \label{subsec:chapter1:ros:topics}
 As mentioned before, communication between nodes is done via a publisher/subscriber architecture based on topics, which are named buses over which messages are exchanged. There can be several publishers (as well as subscribers) for a topic. A node that generates data publishes all its information in a specific topic bus, consequently this information is consumed by those nodes subscribed to that topic. The transport protocol used for exchanging messages is defined at runtime and can be of two types: TCPROS or UDPROS. The description of these protocols is beyond the scope of this document and the reader is invited to read the ROS documentation for detailed information.
 
+\begin{figure}
+    \centering
+    \includegraphics{Images/fig13-ros-basic-concept.png}
+    \caption[ROS basic concept]{ROS basic concepts. Two nodes communicate between them using the messages published in a topic. One node is responsible of publishing the topic, while the other subscribes and receives the messages of that particular topic. Furthermore, the node in the left calls a service provided by the node in the right, so that node will perform some computation and will return the result. \cite{ros-website}}
+    \label{fig:chapter1:ros:basic_concepts}
+\end{figure}
+
 \subsection{Services}
 \label{subsec:chapter1:ros:services}
 As well as topics, services are a way to communicate nodes. The difference is that topics are an asynchronous way of communication, while services are synchronous. The key difference lies on the ability of nodes to decide when to trigger a service. Hence, services are used in between nodes to retrieve specific information or to request another node to carry out a computation beyond caller's node scope.
@@ -51,19 +58,119 @@ One characteristic that worth mentioning, is that it translates the \ac{NED} ref
 
 \subsection{RTAB-Map}
 \label{subsec:chapter1:ros:octomap}
-something about octomap
+\ac{RTAB-Map} is a RGB-D, stereo and LiDAR graph-based \ac{SLAM} approach based on an incremental appearance-based loop closure detector. It allows to build a 3 dimensional map of the environment using a stereo camera, a LiDAR sensor and/or the odometry estimation. The map is built using a 3D occupancy grid by means of Octomap library, which builds a tree-based representation of the mapped area. Octomap library \enquote{performs a probabilistic occupancy estimation to ensure updatability and to cope with sensor noise}\cite{octomap-paper}.\\
+
+The Octomap library generates an octotree, which is a hierarchical data structure used to generate spacial subdivision in 3 dimensions. Each node in an octotree represents a voxel, which is a cubic volume, which is at the same time, subdivided in eight smaller cubes until a given minimum voxel size called resolution. This way, the octotree data structure is used to build an occupancy grid of a volume. An example of a octotree can be seen in Figure~\ref{fig:chapter1:ros:octomap}, where the color of each occupied voxel represents its height: higher voxels are red-colored, while lower voxels are light-blue-colored.\\
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\textwidth]{Images/fig14-octomap-colored2.png}
+    \caption[Octomap example]{Octomap example. Octotree representation generated from data, showing occupied voxels only. \cite{octomap-paper}}
+    \label{fig:chapter1:ros:octomap}
+\end{figure}
+
+RTAB-Map library, uses the Octomap library to store the 3D occupancy grid of the environment. The \inlinesrc{rtabmap_ros} node is the extension of the RTAB-Map library for ROS. It uses the information of the stereo camera or a RGB-D camera and/or a LiDAR information to create a cloud point that is used to build the map. Furthermore, it uses the provided odometry to estimate and correct the robot's pose into the 3D map. An example of this procedure can be seen in Figure~\ref{fig:chapter1:ros:rtabmap}.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\textwidth]{Images/fig14-rtabmap3.png}
+    \caption[RTAB-Map example]{RTAB-Map example. An stereo camera or a RGB-D camera is used among the odometry estimation. Both are used to generate a 3D occupancy grid using Octomap library, and to correct the odometry estimation. \cite{rtabmap-presentation}}
+    \label{fig:chapter1:ros:rtabmap}
+\end{figure}
 
 \section{Transformations}
 \label{sec:chapter1:transform}
+A robot, in this case the drone, can be considered as a rigid body that moves and rotates around the environment. Hence, it is necessary to model the drone displacement in space, and this can be done by decomposing the movement as translations and rotations.
 
 \subsection{Translation}
 \label{subsec:chapter1:transform:translation}
+Given a vector $\bm{b} = \begin{bmatrix}b_x & b_y & b_z\end{bmatrix}^T$ that represents the center of mass of a rigid body, a translation that displaces $\bm{b}$ parallel to itself of a given vector $\bm{t}$ can be defined as:
+\begin{align*}
+    \bm{b} + \bm{t} = \begin{bmatrix}
+        b_x \\ b_y \\ b_z
+    \end{bmatrix} + \begin{bmatrix}
+    t_1 \\ t_2 \\ t_3
+\end{bmatrix} = \begin{bmatrix}
+        b_x + t_1\\ b_y + t_2 \\ b_z + t_3
+\end{bmatrix}
+\end{align*}
+Given a point $\mathcal{P}$ represented in the reference frame $\mathcal{R}_m$ by $\bm{v_P^m}$ will be represented in the reference frame $\mathcal{R}_n$ by:
+\begin{align*}
+    \bm{v_P^n} = \bm{v_P^m} + \bm{t_m^k}
+\end{align*}
 
 \subsection{Rotation}
 \label{subsec:chapter1:transform:rotation}
+In three dimensional space, any displacement of a rigid body is equivalent to a single rotation of a given angle about some axis that contains the point. It is possible to express the previous statement as $\bm{v} = \bm{u} * \theta$, being $\bm{u}$ a unit vector representing the axis and $\theta$ the angle.\\
+
+Unlike with translations, two or more rotations cannot be simply the sum of the related vectors. A rotation can be described assuming a rigid body in a reference frame with its origin fixed, while the unit vectors are changed under the rotation. This way, a rotation is characterized by the mathematical relation of these two reference frames. Hence, in order to represent a rotation, two reference frames with a common origin are needed, as shown in Figure~\ref{fig:chapter1:transformation:rotation:3d-example}. At the beginning the two reference frames coincide, then one of them is rotated around the origin by an arbitrary angle. After this procedure, the two reference frames are not coincident anymore, however, both share the same origin.\\
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\textwidth]{Images/fig17-3D-rotation-example}
+    \caption[Rotation around origin]{cambiar esto}
+    \label{fig:chapter1:transformation:rotation:3d-example}
+\end{figure}
+
+The rotation by any angle of any axis can be represented in a matrix form, $\bm{R_n^m}$, where each column of the matrix represents the unit vector of $R_n$ in $R_m$, so it represents the rotated frame $R_n$ with respect the fixed frame $R_m$ with common origin. Furthermore, it is possible to show that matrix $\bm{R_n^m}$ is \emph{orthonormal}, which means that its inverse is equal to its transpose.\\
+
+Given the matrix representation of a rotation, it is possible to provide a way to rotate a vector in the space. When the reference frames origins are the same, the rotation of a vector is possible by multiplying it by the rotation matrix around an axis: $\bm{v^m} = \bm{R_n^m} \bm{v^n}$. This kind of rotations are called \emph{elementary rotations}, and given that there are three axis in a 3D space, three different elementary rotations can be defined:
+\begin{enumerate}
+    \item{Rotation around axis $x$: \begin{align*}
+            \bm{R_{x, \theta}} = \begin{bmatrix}
+                1 & 0 & 0 \\ 0 & \cos{\left(\theta\right)} & -\sin{\left(\theta\right)} \\ 0 & \sin{\left(\theta\right)} & \cos{\left(\theta\right)}
+            \end{bmatrix}
+    \end{align*}}
+    \item{Rotation around axis $y$: \begin{align*}
+        \bm{R_{y, \theta}} = \begin{bmatrix}
+             \cos{\left(\theta\right)} & 0 &  \sin{\left(\theta\right)} \\ 0 & 1 & 0 \\  -\sin{\left(\theta\right)} & 0 & \cos{\left(\theta\right)}
+        \end{bmatrix}
+    \end{align*}}
+    \item{Rotation around axis $y$: \begin{align*}
+        \bm{R_{z, \theta}} = \begin{bmatrix}
+            \cos{\left(\theta\right)} & -\sin{\left(\theta\right)} & 0 \\ \sin{\left(\theta\right)} & \cos{\left(\theta\right)} & 0 \\ 0 & 0 & 1
+        \end{bmatrix}
+    \end{align*}}
+\end{enumerate}
+
+As mentioned, unlike translations, rotations cannot be summed. Hence, if two consecutive rotations need to be performed around two axis, a multiplication is needed:
+\begin{align}
+    \bm{R_{y,x}} = \bm{R_{x, \alpha}} * \bm{R_{y, \beta}}
+\end{align}
+where $\bm{R_{y,x}}$ is the rotation around axis $y$ by an angle $\beta$ followed by a rotation around the new axis $x$ by an angle $\alpha$, as shown in Figure~\ref{fig:chapter1:transform:rotation_z_x}.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\textwidth]{Images/fig16-rotations.png}
+    \caption[Rotation around axis $z$ followed by rotation about axis $x$]{Rotation about axis $z$ followed by rotation about axis $x$. The second rotation is performed about the original axis $z$. This final rotation can be achieve by multiplying $R_1$ and $R_2$.\cite{hauser-robotics-systems}}
+    \label{fig:chapter1:transform:rotation_z_x}
+\end{figure}
 
 \subsection{Homogeneous Transform}
 \label{subsec:chapter1:transform:rototranslation}
+A rotation and a translation can be accomplished as follow: $\hat{\bm{v}} = \bm{R}\bm{v} + \bm{t}$. Nevertheless, this can be achieve by using \emph{homogeneous coordinates}, where the point $\bm{v}$, expressed in its homogeneous representation, is $\bm{v} = \begin{bmatrix}v_x & v_y & v_z & 1\end{bmatrix}^T$. This way, the rotation and translation of a point can be accomplished by multiplying the 3D point with the homogeneous transformation matrix:
+\begin{align}
+    \bm{T}_m^n &= \begin{bmatrix}
+        \bm{R}_m^n & \bm{t} \\
+        \bm{0} & 1
+    \end{bmatrix}
+    \label{eq:chapter1:transform:homogeneous_transform}\\
+    \hat{\bm{v}}^n &= \bm{T}_m^n\bm{v}^m
+\end{align}
+As can be noticed in equation~(\ref{eq:chapter1:transform:homogeneous_transform}), the homogeneous transformation is represented by a $4 \times 4$ matrix, and unlike the pure rotation matrix showed in Section~\ref{subsec:chapter1:transform:rotation}, the inverse of the homogeneous transformation is not equal to its transpose. The inverse of the homogeneous transformation is equivalent to:
+\begin{align}
+    \bm{T}^{-1} &= \begin{bmatrix}
+        \bm{R}^T & -\bm{R}^T\bm{t} \\
+        \bm{0} & 1
+    \end{bmatrix}
+\end{align}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.5\textwidth]{Images/fig15-homogeneous-transform.png}
+    \caption[Example of a Homogeneous transform]{Example of a Homogeneous transform. \textbf{(a)} Transformation $\bm{T}_m^0$ is applied to a point in reference frame $\mathcal{R}_0$ to express it in reference frame $\mathcal{R}_m$. \textbf{(b)} The inverse transformation is applied, so to express the point in reference frame $\mathcal{R}_m$ into reference frame $\mathcal{R}_0$.  \cite{bona-dynamic-modelling}}
+    \label{fig:chapter1:transform:homogeneous}
+\end{figure}
 
 \section{Kalman Filter}
 \label{sec:chapter1:kf}
