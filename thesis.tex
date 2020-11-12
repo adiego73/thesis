@@ -56,13 +56,13 @@
 \usepackage[backref,
 			backend=bibtex,
            	maxbibnames=999,
-           	natbib=true,
+			natbib=true,
            	firstinits=false,
            	style=numeric-comp,
            	sortcites=false,
            	sorting=none,
            	doi=false,
-           	url=false]{biblatex}
+           	url=true]{biblatex}
 \bibliography{Bibliography}
 
 \input{classicthesis-config}
@@ -86,7 +86,6 @@
 	\selectlanguage{american} % american/italian
 	\pagenumbering{roman}
 	\pagestyle{plain}
-	\nocite{*}
 
 	%*************************************************************
 	% Frontmatter
@@ -117,11 +116,14 @@
 
     % \cleardoublepage\ctparttext{You can put some informational part preamble text here.} % uncomment these two lines to create "part" of chapters
 
-%    \include{Chapters/chapter0}
+    \include{Chapters/chapter0}
 	\include{Chapters/chapter1}
 	\include{Chapters/chapter2}
 	\include{Chapters/chapter3}
 	\include{Chapters/chapter4}
+
+%    Cite all the other bibliography at the end so everything appears in order.
+    \nocite{*}
 
 	% ************************************************************
 	% Backmatter
