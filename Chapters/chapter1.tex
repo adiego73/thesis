@@ -12,12 +12,12 @@ Nodes are processes that perform a specific computation. In the system the nodes
 
 \subsection{Topics}
 \label{subsec:chapter1:ros:topics}
-As mentioned before, communication between nodes is done via a publisher/subscriber architecture based on topics, which are named buses over which messages are exchanged. There can be several publishers (as well as subscribers) for a topic. A node that generates data publishes all its information in a specific topic bus, consequently this information is consumed by those nodes subscribed to that topic. The transport protocol used for exchanging messages is defined at runtime and can be of two types: TCPROS or UDPROS. The description of these protocols is beyond the scope of this document and the reader is invited to read the ROS documentation for detailed information.
+As mentioned before, communication between nodes is done via a publisher-subscriber architecture based on topics, which are named buses over which messages are exchanged. There can be several publishers (as well as subscribers) for a topic. A node that generates data publishes all its information in a specific topic bus, consequently this information is consumed by those nodes subscribed to that topic. The transport protocol used for exchanging messages is defined at runtime and can be of two types: TCPROS or UDPROS. The description of these protocols is beyond the scope of this document and the reader is invited to read the \ac{ROS} documentation for detailed information.
 
 \begin{figure}
     \centering
     \includegraphics{Images/fig13-ros-basic-concept.eps}
-    \caption[ROS basic concept]{ROS basic concepts. Two nodes communicate between them using the messages published in a topic. One node is responsible of publishing the topic, while the other subscribes and receives the messages of that particular topic. Furthermore, the node in the left calls a service provided by the node in the right, so that node will perform some computation and will return the result. \cite{ros-website}}
+    \caption[ROS basic concept]{\ac{ROS} basic concepts. Two nodes communicate between them using the messages published in a topic. One node is responsible of publishing the topic, while the other subscribes and receives the messages of that particular topic. Furthermore, the node in the left calls a service provided by the node in the right, so that node will perform some computation and will return the result. \cite{ros-website}}
     \label{fig:chapter1:ros:basic_concepts}
 \end{figure}
 
@@ -28,14 +28,14 @@ As well as topics, services are a way to communicate nodes. The difference is th
 
 \subsection{Tools}
 \label{subsec:chapter1:ros:tools}
-Regarding the tools provided by ROS, one that is crucial for debugging and/or experimentation is the bag recording and playback. Since the exchange of messages between nodes is anonymous (meaning that nodes communicate between each others without knowing which node sent or received a message) it is possible to record the messages during a period of time, without taking into consideration which node sent a message and which node received it. This recorder bag is useful for debugging since it can be played back, hence reproducing a previous experiment. Also, it can be used for the development of new nodes that depend on the messages contained in the bag.\\
+Regarding the tools provided by \ac{ROS}, one that is crucial for debugging and/or experimentation is the bag recording and playback. Since the exchange of messages between nodes is anonymous (meaning that nodes communicate between each others without knowing which node sent or received a message) it is possible to record the messages during a period of time, without taking into consideration which node sent a message and which node received it. This recorder bag is useful for debugging since it can be played back, hence reproducing a previous experiment. Also, it can be used for the development of new nodes that depend on the messages contained in the bag.\\
 
 Another useful tool provided is \ac{RViz}, a 3D visualization tool. With this tool it is possible to see the robot, orientation, reference frames, covariance matrices, etc. In addition, it is possible to draw lines, arrows, text and others, onto the environment in order to see useful information that cannot be extracted from messages.
 
 \subsection{MAVLink and MAVROS}
 \label{sssec:chapter2:drone:mavlink}
 %\nocite{mavlink}
-MAVLink is a binary telemetry protocol designed for resource-constrained systems and bandwidth-constraint links, more specifically for drones of all kinds. As with ROS, it adopts a publisher-subscriber architecture, where data streams are published as topics. Its key features, as published in their website are:
+MAVLink is a binary telemetry protocol designed for resource-constrained systems and bandwidth-constraint links, more specifically for drones of all kinds. As with \ac{ROS}, it adopts a publisher-subscriber architecture, where data streams are published as topics. Its key features, as published in their website are:
 \begin{itemize}
     \item Since its messages do not require any special framing, it is well suited for applications with very limited bandwidth.
     \item It provides methods for detecting package drops, corruption and for package authentication.
@@ -43,7 +43,7 @@ MAVLink is a binary telemetry protocol designed for resource-constrained systems
     \item Enables both offboard and onboard communications.
 \end{itemize}
 %\nocite{mavros}
-MAVROS is the extension of MAVLink in ROS, with the additive of being a proxy for Ground Control Station tool. Its main features, as published in its website are:
+MAVROS is the extension of MAVLink in \ac{ROS}, with the additive of being a proxy for Ground Control Station tool. Its main features, as published in its website are:
 \begin{itemize}
     \item Communication with autopilot via serial port, UDP or TCP .
     \item Internal proxy for Ground Control Station (serial, UDP, TCP).
@@ -54,13 +54,11 @@ MAVROS is the extension of MAVLink in ROS, with the additive of being a proxy fo
     \item OFFBOARD mode support.
 \end{itemize}
 
-One characteristic that worth mentioning, is that it translates the \ac{NED} reference frames into \ac{ENU} reference frames, and vice-versa, so as to be compliant with ROS standard reference frames.
+One characteristic that worth mentioning, is that it translates the \ac{NED} reference frames into \ac{ENU} reference frames, and vice-versa, so as to be compliant with \ac{ROS} standard reference frames.
 
 \subsection{RTAB-Map}
 \label{subsec:chapter1:ros:octomap}
 \ac{RTAB-Map} is a RGB-D, stereo and LiDAR graph-based \ac{SLAM} approach based on an incremental appearance-based loop closure detector. It allows to build a 3 dimensional map of the environment using a stereo camera, a LiDAR sensor and/or the odometry estimation. The map is built using a 3D occupancy grid by means of Octomap library, which builds a tree-based representation of the mapped area. Octomap library \enquote{performs a probabilistic occupancy estimation to ensure updatability and to cope with sensor noise}\cite{octomap-paper}.\\
-
-The Octomap library generates an octotree, which is a hierarchical data structure used to generate spacial subdivision in 3 dimensions. Each node in an octotree represents a voxel, which is a cubic volume, which is at the same time, subdivided in eight smaller cubes until a given minimum voxel size called resolution. This way, the octotree data structure is used to build an occupancy grid of a volume. An example of a octotree can be seen in Figure~\ref{fig:chapter1:ros:octomap}, where the color of each occupied voxel represents its height: higher voxels are red-colored, while lower voxels are light-blue-colored.\\
 
 \begin{figure}
     \centering
@@ -69,12 +67,15 @@ The Octomap library generates an octotree, which is a hierarchical data structur
     \label{fig:chapter1:ros:octomap}
 \end{figure}
 
-RTAB-Map library, uses the Octomap library to store the 3D occupancy grid of the environment. The \inlinesrc{rtabmap_ros} node is the extension of the RTAB-Map library for ROS. It uses the information of the stereo camera or a RGB-D camera and/or a LiDAR information to create a cloud point that is used to build the map. Furthermore, it uses the provided odometry to estimate and correct the robot's pose into the 3D map. An example of this procedure can be seen in Figure~\ref{fig:chapter1:ros:rtabmap}.
+
+The Octomap library generates an octotree, which is a hierarchical data structure used to generate spacial subdivision in 3 dimensions. Each node in an octotree represents a voxel, which is a cubic volume, which is at the same time, subdivided in eight smaller cubes until a given minimum voxel size called resolution. This way, the octotree data structure is used to build an occupancy grid of a volume. An example of a octotree can be seen in Figure~\ref{fig:chapter1:ros:octomap}, where the color of each occupied voxel represents its height: higher voxels are red-colored, while lower voxels are light-blue-colored.\\
+
+\ac{RTAB-Map} library, uses the Octomap library to store the 3D occupancy grid of the environment. The \inlinesrc{rtabmap_ros} node is the extension of the \ac{RTAB-Map} library for \ac{ROS}. It uses the information of the stereo camera or a RGB-D camera and/or a LiDAR information to create a cloud point that is used to build the map. Furthermore, it uses the provided odometry to estimate and correct the robot's pose into the 3D map. An example of this procedure can be seen in Figure~\ref{fig:chapter1:ros:rtabmap}.
 
 \begin{figure}
     \centering
     \includegraphics[width=\textwidth]{Images/fig14-rtabmap3.png}
-    \caption[RTAB-Map example]{RTAB-Map example. An stereo camera or a RGB-D camera is used among the odometry estimation. Both are used to generate a 3D occupancy grid using Octomap library, and to correct the odometry estimation. \cite{rtabmap-presentation}}
+    \caption[RTAB-Map example]{\ac{RTAB-Map} example. An stereo camera or a RGB-D camera is used among the odometry estimation. Both are used to generate a 3D occupancy grid using Octomap library, and to correct the odometry estimation. \cite{rtabmap-presentation}}
     \label{fig:chapter1:ros:rtabmap}
 \end{figure}
 
@@ -178,7 +179,7 @@ As can be noticed in equation~(\ref{eq:chapter1:transform:homogeneous_transform}
 
 Introduced by \cite{kalman}, the \ac{KF} provides a recursive method for estimating the state of a dynamic system with presence of noise. It is a technique for filtering and prediction in \emph{linear Gaussian systems} and applicable only to continuous states. One of its key features is that it simultaneously maintains estimates of the state vector and the estimate error covariance. It assures that the posteriors are Gaussian if the Markov assumption is hold, in addition to three conditions. The Markov assumption states that the past and future data are independent if one knows the current state; the other three conditions are the following:
 \begin{enumerate}
-    \item{The state transition probability $p\left( x_t | u_t, x_{t-1}\right)$ must be a linear function in its arguments. This is guaranteed by $ x_t = A_t x_{t-1} + B_t u_t + \epsilon_t $. Here, $x_t$ and $x_{t-1}$ are the state vectors, of size $n$, and $u_t$ represents the control vector, of size $m$, at time $t$; $A_t$ and $B_t$ are matrices of size $n \times n$ and $n\times m$ respectively. In this way, the state transition function becomes linear in its arguments, hence KF assumes a linear system dynamics. \\\\ $\epsilon_t$ represents the uncertainty introduced by the state transition, and it is a Gaussian random variable with zero mean and $R_t$ covariance.}
+    \item{The state transition probability $p\left( x_t | u_t, x_{t-1}\right)$ must be a linear function in its arguments. This is guaranteed by $ x_t = A_t x_{t-1} + B_t u_t + \epsilon_t $. Here, $x_t$ and $x_{t-1}$ are the state vectors, of size $n$, and $u_t$ represents the control vector, of size $m$, at time $t$; $A_t$ and $B_t$ are matrices of size $n \times n$ and $n\times m$ respectively. In this way, the state transition function becomes linear in its arguments, hence \ac{KF} assumes a linear system dynamics. \\\\ $\epsilon_t$ represents the uncertainty introduced by the state transition, and it is a Gaussian random variable with zero mean and $R_t$ covariance.}
     \item{The measurement probability $p\left(z_t | x_t\right)$ must be linear in its arguments. This is guaranteed by $z_t = C_t x_t + \delta_t$, where $z_t$ represents the measurement vector of size $k$, $C_t$ is a matrix of size $k \times n$ and $\delta_t$ is a Gaussian noise with zero mean and $Q_t$ covariance.}
     \item{The initial belief should be normally distributed.}
 \end{enumerate}
@@ -201,7 +202,7 @@ Given these three conditions, we are guaranteed that the posterior probability i
     \Return{$\mu_t$, $\Sigma_t$}
 \end{algorithm}
 
-The KF can be seen in Algorithm~\ref{alg:chapter1:kf} and its input is the belief at time $t-1$, represented by its mean ($\mu_{t-1}$) and its covariance ($\Sigma_{t-1}$), in addition to the control vector ($u_t$) and the observations ($z_t$). As a result, it returns the current belief characterized by its mean $\mu_t$ and covariance $\Sigma_t$. \\
+The \ac{KF} can be seen in Algorithm~(\ref{alg:chapter1:kf}) and its input is the belief at time $t-1$, represented by its mean ($\mu_{t-1}$) and its covariance ($\Sigma_{t-1}$), in addition to the control vector ($u_t$) and the observations ($z_t$). As a result, it returns the current belief characterized by its mean $\mu_t$ and covariance $\Sigma_t$. \\
 
 The first step in the algorithm (lines 1 and 2), represent the prediction step. It calculates the current belief before incorporating the observations, but after adding the control vector. The estimated belief is characterized by its mean, $\hat\mu_t$ , and its covariance $\hat\Sigma_t$.\\
 
@@ -210,7 +211,7 @@ The second step (from line 3 to 5) starts by calculating $K_t$, the Kalman gain,
 \subsection{Extended Kalman Filter}
 \label{subsec:chapter1:kf:ekf}
 
-The linearity conditions that make the KF to work are, in some cases, far from reality: state transition functions and measurements are rarely linear in practice. The \ac{EKF} works through a process of linearization, where nonlinear state transition and observation functions are approximated by a Taylor series expansion. \\
+The linearity conditions that make the \ac{KF} to work are, in some cases, far from reality: state transition functions and measurements are rarely linear in practice. The \ac{EKF} works through a process of linearization, where nonlinear state transition and observation functions are approximated by a Taylor series expansion. \\
 
 \begin{figure}
     \centering
@@ -223,7 +224,7 @@ The Figure~\ref{fig:chapter1:kf:ekf:cmp-kf-ekf}a shows the linear transformation
 
 However, as shown in Figure~\ref{fig:chapter1:kf:ekf:cmp-kf-ekf}b, this does not happen if the transformation is not linear. In this case, assuming the original random variable is transformed using a nonlinear function $g$, the density of the resulting random variable is not Gaussian anymore.\\
 
-The state transition probability and observation probabilities are ruled by nonlinear functions $g$ and $h$ respectively. Matrices $A$ and $B$ are replaced by function $g\left(u_t, x_{t-1}\right)$ and matrix $H$ is replaced by function $h \left(x_t\right)$, making the belief not Gaussian. This is solved in EKF by approximating to the true belief, not the exact one as happens with linear KF. The approximation is done using a linearization method that approximates the nonlinear function by a linear function that is tangent to it, thereby maintaining the Gaussian properties of the posterior belief. \\
+The state transition probability and observation probabilities are ruled by nonlinear functions $g$ and $h$ respectively. Matrices $A$ and $B$ are replaced by function $g\left(u_t, x_{t-1}\right)$ and matrix $H$ is replaced by function $h \left(x_t\right)$, making the belief not Gaussian. This is solved in \ac{EKF} by approximating to the true belief, not the exact one as happens with linear \ac{KF}. The approximation is done using a linearization method that approximates the nonlinear function by a linear function that is tangent to it, thereby maintaining the Gaussian properties of the posterior belief. \\
 
 The used method is the first order Taylor expansion, which constructs a linear approximation of a function $g$ from $g$'s value and slope, which is given by
 \begin{equation}
@@ -250,7 +251,7 @@ where $h'$ is the Jacobian of $h$, usually expressed as $H_t$. In this case, the
 \begin{figure}[h]
     \centering
     \includegraphics{Images/fig2-ekf-linearization.png}
-    \caption[Linearization applied in EKF]{Linearization applied in EKF. In this case, the nonlinear function $g$ is approximated using first order Taylor expansion, that is a linear function tangent to $g$ at the mean of the original density function. The linearization is not perfect, so it adds an error, depicted in the upper left plot. This error is the difference between the dashed line and the solid line. \cite{prob-robotics}}
+    \caption[Linearization applied in EKF]{Linearization applied in \ac{EKF}. In this case, the nonlinear function $g$ is approximated using first order Taylor expansion, that is a linear function tangent to $g$ at the mean of the original density function. The linearization is not perfect, so it adds an error, depicted in the upper left plot. This error is the difference between the dashed line and the solid line. \cite{prob-robotics}}
     \label{fig:chapter1:kf:ekf:ekf-linearization}
 \end{figure}
 
@@ -273,7 +274,7 @@ The Figure~\ref{fig:chapter1:kf:ekf:ekf-linearization} depicts the approximation
     \Return{$\mu_t$, $\Sigma_t$}
 \end{algorithm}
 
-The EKF algorithm can be seen in Algorithm~\ref{alg:chapter1:kf:ekf}, and it is similar to Algorithm~\ref{alg:chapter1:kf}. The difference lies in the usage of the nonlinear functions $g$ and $h$ and their Jacobians, $G_t$ and $H_t$ respectively.
+The \ac{EKF} algorithm can be seen in Algorithm~(\ref{alg:chapter1:kf:ekf}), and it is similar to Algorithm~(\ref{alg:chapter1:kf}). The difference lies in the usage of the nonlinear functions $g$ and $h$ and their Jacobians, $G_t$ and $H_t$ respectively.
 
 \section{Simultaneous Localization and Mapping}
 \label{sec:chapter1:slam}
@@ -297,13 +298,13 @@ On the other hand, assuming that the robot already knows the map, the localizati
     \label{fig:chapter1:slam}
 \end{figure}
 
-The localization and mapping problems can be solved together by using a SLAM technique, with which the robot will build the map while localizing itself in it. An example of this problem can be seen in Figure~\ref{fig:chapter1:slam}, where a robot moves around the environment and sees some features or landmarks. The uncertainty regarding its position is low when it starts, and keeps growing while it moves around. At the end, it sees a known landmark ($m_0$) making the uncertainty to shrink. As can be seen in the figure, the robot adds new landmarks to the map ($m_1$ and $m_2$) with their corresponding uncertainty, and when the robot sees the first landmark, not only its own uncertainty decreases, but also the two new landmarks' uncertainty. In this way, the robot's position is correlated with the observations' position estimates.\\
+The localization and mapping problems can be solved together by using a \ac{SLAM} technique, with which the robot will build the map while localizing itself in it. An example of this problem can be seen in Figure~\ref{fig:chapter1:slam}, where a robot moves around the environment and sees some features or landmarks. The uncertainty regarding its position is low when it starts, and keeps growing while it moves around. At the end, it sees a known landmark ($m_0$) making the uncertainty to shrink. As can be seen in the figure, the robot adds new landmarks to the map ($m_1$ and $m_2$) with their corresponding uncertainty, and when the robot sees the first landmark, not only its own uncertainty decreases, but also the two new landmarks' uncertainty. In this way, the robot's position is correlated with the observations' position estimates.\\
 
-The idea of the SLAM problem is to estimate a posterior belief that involves not only the robot pose, but also the map: $p\left(x_t, m | z_{1:t}, u_{1:t}\right)$, where $x_t$ is the robot's pose at time $t$, $m$ is the map, $z_{1:t}$ are the measurements, and $u_{1:t}$ are the controls given to the robot.
+The idea of the \ac{SLAM} problem is to estimate a posterior belief that involves not only the robot pose, but also the map: $p\left(x_t, m | z_{1:t}, u_{1:t}\right)$, where $x_t$ is the robot's pose at time $t$, $m$ is the map, $z_{1:t}$ are the measurements, and $u_{1:t}$ are the controls given to the robot.
 
 \subsection{EKF-SLAM}
 \label{subsec:chapter1:slam:ekfslam}
-The SLAM problem can be addressed, between others, using an EKF approach. The algorithm proceeds in the same way as shown in Section~\ref{subsec:chapter1:kf:ekf}, being $\mu$ a state vector containing the information for the robot pose ($q_r$) and the landmarks' pose ($m_i$):
+The \ac{SLAM} problem can be addressed, between others, using an \ac{EKF} approach. The algorithm proceeds in the same way as shown in Section~\ref{subsec:chapter1:kf:ekf}, being $\mu$ a state vector containing the information for the robot pose ($q_r$) and the landmarks' pose ($m_i$):
 \begin{equation}
     \mu = \begin{bmatrix}
         q_r & m_0 & \dots & m_{n-1}
@@ -343,7 +344,7 @@ The EKF-SLAM algorithm estimates the robot's pose in addition to all encountered
 
 Assuming the robot's pose is composed by $x$, $y$, $\theta$ , the markers' pose is composed by $x$, $y$, and there are $N$ markers, the state vector $\mu$ will have a length of $3 \times 2N$, and the covariance matrix $\Sigma$ will have a size of $(3 \times 2N) \times (3 \times 2N)$.\\
 
-The algorithm can be seen in Algorithm~\ref{alg:chapter1:slam:ekfslam}. From lines 1 to 3, it computes the state vector and covariance matrix updates; the function $computeJacobian$ computes, indeed, the Jacobian matrix for the motion model $g$, and the resulting matrix has the same size as the covariance matrix and has the following characteristic:
+The algorithm can be seen in Algorithm~(\ref{alg:chapter1:slam:ekfslam}). From lines 1 to 3, it computes the state vector and covariance matrix updates; the function $computeJacobian$ computes, indeed, the Jacobian matrix for the motion model $g$, and the resulting matrix has the same size as the covariance matrix and has the following characteristic:
 \begin{align}
    G_t &= \begin{bmatrix}
         G_r & \textbf{0} \\
@@ -436,6 +437,7 @@ The linearized covariance update can be factored as shown in equation~(\ref{eq:c
 The Mahalanobis distance is a measure of the distance between a point and a distribution. It is a way to measure how many standard deviations is away the point from the mean of the distribution. The Mahalanobis distance of an observation $\bm{x} = \begin{bmatrix}x_1 & x_2 & \dots \end{bmatrix}$ with mean $\bm{\mu} = \begin{bmatrix}\mu_1 & \mu_2 & \dots \end{bmatrix}$, and covariance matrix $\Sigma$ is defined as:
 \begin{equation}
     D = \sqrt{\left(\bm{x} - \bm{\mu}\right) \Sigma^{-1} \left(\bm{x} - \bm{\mu}\right)}
+    \label{eq:chapter1:nees:mahalanobis}
 \end{equation}\\
 Every time the drone observes a pole or a marker, a node responsible of identifying the landmark processes the features that distinguish it with respect to other landmarks, and publishes these features as a message. In the case of poles, the message type is \inlinesrc{RangeAndBearingPole}, which contains the range and bearing information, and in the case of markers the message type is \inlinesrc{Pose}, which contains the position and orientation information of the observed marker. Given this, each observation $z$ for a pole, is composed by three measurements, and each observation of a marker is composed by six measurements. After observing a landmark the Algorithm~(\ref{alg:chapter1:slam:ekfslam}) calculates the discrepancy between the observation $i$ and the predicted observation by the innovation ($v^i$), and its covariance ($S$), as
 \begin{align*}
@@ -455,7 +457,7 @@ Furthermore, a state estimate is consistent if its state estimation error $\bm{x
     \mathbb{E}\left[\bm{x} - \hat{\bm{x}}\right] = 0\\
     \mathbb{E}\left[\left(\bm{x} - \hat{\bm{x}}\right)\left(\bm{x} - \hat{\bm{x}}\right)^T\right] \le \Sigma
 \end{align*}
-When the ground truth $\bm{x}$ is available, a \ac{NEES} can be performed to check the consistency of the filter. NEES test can be defined as the squared Mahalanobis distance for the difference between $\bm{x}$ and $\hat{\bm{x}}$, and consistency can be checked with a $\chi^2$ test
+When the ground truth $\bm{x}$ is available, a \ac{NEES} can be performed to check the consistency of the filter. \ac{NEES} test can be defined as the squared Mahalanobis distance for the difference between $\bm{x}$ and $\hat{\bm{x}}$, and consistency can be checked with a $\chi^2$ test
 \begin{align*}
     NEES = \left(\bm{x} - \hat{\bm{x}}\right) \Sigma^{-1} \left(\bm{x} - \hat{\bm{x}}\right) \le \chi_{d, 1-\alpha}^2
 \end{align*}

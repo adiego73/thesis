@@ -1,8 +1,39 @@
 \chapter{EKF-SLAM Implementation}
 \label{ch:chapter2}
-In Chapter~\ref{ch:chapter1} the EKF-SLAM algorithm in the context of SLAM was explained. As mentioned in Section~\ref{sec:chapter1:kf}, the algorithm can be summarized in two steps: prediction and correction. In the first stage involves the prediction of the next state of the system, meanwhile, during the correction stage, this estimation is updated. \\
+In Chapter~\ref{ch:chapter1} the EKF-SLAM algorithm in the context of \ac{SLAM} was explained. As mentioned in Section~\ref{sec:chapter1:kf}, the algorithm can be summarized in two steps: prediction and correction. In the first stage involves the prediction of the next state of the system, meanwhile, during the correction stage, this estimation is updated. However, differently from the Algorithm~(\ref{alg:chapter1:slam:ekfslam}), the proposed implementation adds a \ac{NEES} test with th objective of improving the consistency of the filter. The updated version of the algorithm can be seen in Algorithm~(\ref{alg:chapter2:implementation:ekfslam}).\\
+\begin{algorithm}[h]
+    \caption{EKF-SLAM algorithm with NEES test}
+    \label{alg:chapter2:implementation:ekfslam}
+    \BlankLine
+    \KwIn{$\mu_{t-1}$, $\Sigma_{t-1}$, $u_t$, $z_t$}
+    \BlankLine
+    $\hat\mu_t = g\left(\mu_{t-1}, u_t\right)$\;
+    $G_t = computeJacobian\left(g\right)$\;
+    $\hat\Sigma_t = G_t \Sigma_{t-1} G_t^T + R_t$\;
+    \BlankLine
+    \ForEach{landmark observation $z_t^i$}{
+        \BlankLine
+        \If{landmark $i$ has not being seen before}{
+            $addLandmarkToStateVector\left( z_t^i \right)$
+        }
+        \BlankLine
+        $H_t^i = computeJacobian\left( h^i \right)$\;
+        $v^i =  z_t^i - h^i \left( \hat\mu_t \right)$\;
+        $S = H_t^i \hat\Sigma_t H_t^{iT} + Q_t$\;
+        $K_t^i = \hat\Sigma_t H_t^{iT} S^{-1}$ \;
+        $e = {v^i}^T S^{-1} {v^i}$\;
+        \If{$e < \chi_{\alpha}^2$}{
+            $\mu_t = \hat\mu_t + K_t^i \left( v^i \right) $ \;
+            $\Sigma_t = (I - K_t^i H_t^i) \hat\Sigma_t$ \;
+        }
+    }
+    \BlankLine
+    \Return{$\mu_t$, $\Sigma_t$}
+\end{algorithm}
 
-In this chapter, an EKF-SLAM implementation is shown, starting from the used drone characteristics, going through the prediction and correction steps, and ending with the overall system's architecture.
+Line 11, computes the \ac{NEES} value, and line 12 compares it with the $\chi^2$ value for the specific landmark. If the \ac{NEES} value is lower than the $\chi^2$ threshold, the observation is accepted and the state vector and covariance matrix are updated.\\
+
+In this chapter, an EKF-SLAM implementation is shown, starting from the used drone characteristics, going through the motion and observation models, visual process pipeline, and ending with the overall system's architecture.
 
 \section{The Drone}
 \label{sec:chapter2:drone}
@@ -66,21 +97,21 @@ The flight controller used in this case is a PixHawk 4, and its characteristics 
 \subsubsection{Additional Sensors}
 The drone was equipped with several sensors that are the input for localization, mapping and path planning algorithms, among others.\\
 
-The localization and mapping algorithm makes use, in an indirect way, of monocular and stereo cameras, and laser range sensors. Four cameras were mounted in order to be able to have 360 range view, with cameras mounted every 90 degrees. Furthermore, two stereo cameras were mounted, one points forward in order to update the Octomap and the other points downwards in order to see the markers; Also, both of them are used to build a 3-dimensional map, used for obstacle avoidance and with the height estimation algorithm. Furthermore, eight laser range sensors were mounted every 45 degrees, and one PIX4Flow optical flow camera points downwards in order to measure the distance to the ground.
+The localization and mapping algorithm makes use, in an indirect way, of monocular and stereo cameras, and range sensors. Four cameras were mounted in order to be able to have 360 range view, with cameras mounted every 90 degrees. Furthermore, two stereo cameras were mounted, one points forward in order to update the Octomap and the other points downwards in order to see the markers; Also, both of them are used to build a 3-dimensional map, used for obstacle avoidance and with the height estimation algorithm. Furthermore, eight range sensors were mounted every 45 degrees, and one PIX4Flow optical flow camera points downwards in order to measure the distance to the ground.
 
 \subsection{Reference Frames}
 \label{subsec:chapter2:drone:frames}
 This system is composed by three reference frames linked with each other, as represented in Figure~\ref{fig:chapter2:drone:frames:frames}: \emph{map}, \emph{odom} and \emph{base\_link}. The \emph{map} frame, also called \emph{world} or \emph{global} frame, is the static reference frame, where the global drone's position and global markers' position is set. The odom reference frame is similar to the map frame, but the difference is that this frame drifts with time, as happens with the pure odometry. Finally, the base\_link frame, also referred as \emph{body} or \emph{local} frame, refers to the center of mass of the drone.\\
 
 As mentioned before, all transformations within these reference frames are published by different nodes: the map to odom transformation is handled by the \emph{rtabmap} node, the odom to base\_link is handled by \emph{mavros} node. There are many other transformations in the system, but they are mainly related to the base\_link reference frame and the different cameras and sensors in the drone. \\
-\begin{figure}
+\begin{figure}[h]
     \centering
     \includegraphics[width=0.7\textwidth]{Images/fig5-frames.png}
     \caption{Main reference frames in the system.}
     \label{fig:chapter2:drone:frames:frames}
 \end{figure}
 
-Finally, there is a transformation that worth mentioning: the \ac{NED} to \ac{ENU}. As mentioned in Section~\ref{sec:chapter1:ros}, ROS uses the ENU convention, while the convention adopted by the Aerospace community is the NED. Also, as mentioned in Section~\ref{sssec:chapter2:drone:mavlink}, MAVROS is in charge of doing and publish this transformation. In Figure~\ref{fig:chapter2:drone:frames:enu2ned} a simple scheme of the transformation can be seen. As explained before, this transform consists on rotating the X-axis and the Y-axis by 90 degrees, hence the homogeneous rotation matrix will have the following form:
+Finally, there is a transformation that worth mentioning: the \ac{NED} to \ac{ENU}. As mentioned in Section~\ref{sec:chapter1:ros}, \ac{ROS} uses the \ac{ENU} convention, while the convention adopted by the Aerospace community is the \ac{NED}. Also, as mentioned in Section~\ref{sssec:chapter2:drone:mavlink}, MAVROS is in charge of doing and publish this transformation. In Figure~\ref{fig:chapter2:drone:frames:enu2ned} a simple scheme of the transformation can be seen. As explained before, this transform consists on rotating the X-axis and the Y-axis by 90 degrees, hence the homogeneous rotation matrix will have the following form:
 \begin{align}
     R_{ENU}^{NED} & = \begin{bmatrix}
         0 & -1 & 0 & 0 \\
@@ -94,7 +125,7 @@ Finally, there is a transformation that worth mentioning: the \ac{NED} to \ac{EN
 \begin{figure}
     \centering
     \includegraphics[width=\textwidth]{Images/fig6-ned2enu.png}
-    \caption[NED to ENU conversion scheme]{NED to ENU conversion scheme. \cite{mavros}}
+    \caption[NED to ENU conversion scheme]{\ac{NED} to \ac{ENU} conversion scheme. \cite{mavros}}
     \label{fig:chapter2:drone:frames:enu2ned}
 \end{figure}
 
@@ -196,13 +227,13 @@ Consequently, the noise covariance matrix of the observation model cannot be ded
 \end{equation}\\
 where the diagonal elements $\sigma_{1..n}$ are the standard deviation of the sensor. Depending on the sensor used, the diagonal elements can be the standard deviation for the range and bearing components (distance, azimuth and elevation), or others.\\
 
-As shown in Algorithm~\ref{alg:chapter1:slam:ekfslam} several steps are followed during the correction part of the algorithm. After computing the observation model and its Jacobian matrix, the Kalman gain and the innovation should be calculated, and finally, the state vector and covariance matrix updates should be done.
+As shown in Algorithm~(\ref{alg:chapter1:slam:ekfslam}) and Algorithm~(\ref{alg:chapter2:implementation:ekfslam}) several steps are followed during the correction part of the algorithm. After computing the observation model and its Jacobian matrix, the Kalman gain and the innovation should be calculated, and finally, the state vector and covariance matrix updates should be done.
 
 \subsection{Observation model for Poles}
 \label{subsec:chapter2:correction:poles}
 In the case of Poles, a range and bearing method is used. In this case, since the poles have a known position, their information is not kept in the state vector and therefore, this information will be used for localization purposes.\\
 
-A ROS node will publish the range and bearing information every time the drone sees a pole, and this information will be used to calculate the innovation based on the predicted range and bearing. Hence, the observation model used for poles is computed in the following way:
+A \ac{ROS} node will publish the range and bearing information every time the drone sees a pole, and this information will be used to calculate the innovation based on the predicted range and bearing. Hence, the observation model used for poles is computed in the following way:
 \begin{equation}
     \begin{bmatrix}
         p_{i, x}^b \\ p_{i, y}^b \\ p_{i, z}^b
@@ -243,7 +274,7 @@ where $\rho'$ corresponds to the distance part of the observation model, $\alpha
 \subsection{Observation model for Markers}
 \label{subsec:chapter2:correction:markers}
 
-The observation model for the markers is a bit different. In this case a ROS node is responsible of detecting, tracking and publishing the pose of the markers with respect to the camera that has seen it. The ROS package responsible of this process is called \inlinesrc{visp_auto_tracker}, and publishes messages of type \inlinesrc{PoseStamped}, which provides the position and orientation of the seen marker. An example of this situation can be seen in Figure~\ref{fig:chapter2:correction:markers:example}.\\
+The observation model for the markers is a bit different. In this case a \ac{ROS} node is responsible of detecting, tracking and publishing the pose of the markers with respect to the camera that has seen it. The \ac{ROS} package responsible of this process is called \inlinesrc{visp_auto_tracker}, and publishes messages of type \inlinesrc{PoseStamped}, which provides the position and orientation of the seen marker. An example of this situation can be seen in Figure~\ref{fig:chapter2:correction:markers:example}.\\
 
 \begin{figure}
     \centering
@@ -328,8 +359,7 @@ Since the observation model is composed by a single variable, the Jacobian is a 
 \label{sec:chapter2:visual}
 As mentioned in Section~\ref{sec:chapter2:drone}, the drone is composed by several cameras, specifically, two stereo cameras and four monocular cameras. These cameras are used to identify and avoid obstacles and for localization purposes. The localization process involves the identification of poles and markers, and therefore, the usage of the before mentioned cameras: the four monocular cameras are used to identify poles, while one stereo camera is used to identify the markers.
 \subsection{Visual process for Poles}
-Four ROS nodes are responsible of determining whether a pole is being seen or not. To do so, they subscribe to topics related to the camera information and the camera image, and every time a new image arrives, each node process it to identify a pole. Each pole is composed by two different colors, and each pole has a different combination of colors making possible to uniquely identify them. The overall process can be followed in Algorithm~(\ref{alg:chapter2:visual_pipeline:poles}).
-
+Four \ac{ROS} nodes are responsible of determining whether a pole is being seen or not. To do so, they subscribe to topics related to the camera information and the camera image, and every time a new image arrives, each node process it to identify a pole. Each pole is composed by two different colors, and each pole has a different combination of colors making possible to uniquely identify them. The overall process can be followed in Algorithm~(\ref{alg:chapter2:visual_pipeline:poles}).\\
 \begin{algorithm}[h]
     \caption{Poles localization algorithm}
     \label{alg:chapter2:visual_pipeline:poles}
@@ -362,22 +392,22 @@ Four ROS nodes are responsible of determining whether a pole is being seen or no
 Lines 1 and 2, applies a mask in order to identify the amount of poles contours in the image. If there are pole contours in the image, at lines 5 and 6 the algorithm uniquely identifies the pole and its coordinates. If the width of the identified pole can be seen, at line 8 the algorithm computes the azimuth angle ($\alpha$) by using the drone's yaw and the center of the contour. At line 9, it estimates the probability of occlusion of the pole by comparing the contour shape with the form factor, computed as $\frac{y_{max} - y_{min}}{x_{max} - x_{min}}$ where $y_{max}$ and $y_{min}$ are the bottom and the top coordinates of the contour, and $x_{max}$ and $x_{min}$ are the right and left coordinates of the contour. If the probability is greater that 75\%, the range is computed based on the diameter of the contour. Finally, if the top of the contour can be seen (line 11), at line 12 it computes the altitude.
 
 \subsection{Visual process for Markers}
-The markers detection pipeline is performed by the \ac{ViSP} tracking package \cite{visp-paper}. The package wraps an automated pattern-based tracker based on ViSP library, which allows to estimate an object pose with respect to the camera. In the case of this work a QR code is used as marker, which is identified by the tracker. \\
+The markers detection pipeline is performed by the \ac{ViSP} tracking package \cite{visp-paper}. The package wraps an automated pattern-based tracker based on \ac{ViSP} library, which allows to estimate an object pose with respect to the camera. In the case of this work a QR code is used as marker, which is identified by the tracker. \\
 
 The \inlinesrc{visp_auto_tracker} node subscribes to the camera image and information topics, and publishes the detected object's pose. The camera messages are provided by the stereo camera that points downwards.
 
 \section{Overall Architecture}
 \label{sec:chapter2:arch}
-The system is composed by several ROS nodes that specialize and perform a wide range of operations. However, what is most interesting for this work is the node that is in charge of the EKF-SLAM process. \\
+The system is composed by several \ac{ROS} nodes that specialize and perform a wide range of operations. However, what is most interesting for this work is the node that is in charge of the EKF-SLAM process. \\
 
 \begin{figure}
     \centering
     \includegraphics[width=\textwidth]{Images/fig9-components_diagram}
-    \caption[Components diagram of the EKF Localization node]{Components diagram of the EKF Localization node. The \inlinesrc{EKFSLAM} class subscribes to different messages, between them the \inlinesrc{Odometry} messages are used as control variables, while the \inlinesrc{RangeAndBearingPole} and \inlinesrc{QRCodeStamped} messages are used every time the drone observes a pole or a marker. Moreover, \inlinesrc{EKFSLAM} class publishes two types of messages: \inlinesrc{Odometry} which provides the filtered localization and \inlinesrc{QRCodeStampedArray} which contains a list markers' poses.}
+    \caption[Components diagram of the EKF Localization node]{Components diagram of the \ac{EKF} Localization node. The \inlinesrc{EKFSLAM} class subscribes to different messages, between them the \inlinesrc{Odometry} messages are used as control variables, while the \inlinesrc{RangeAndBearingPole} and \inlinesrc{QRCodeStamped} messages are used every time the drone observes a pole or a marker. Moreover, \inlinesrc{EKFSLAM} class publishes two types of messages: \inlinesrc{Odometry} which provides the filtered localization and \inlinesrc{QRCodeStampedArray} which contains a list markers' poses.}
     \label{fig:chapter2:architecture:components}
 \end{figure}
 
-In Figure~\ref{fig:chapter2:architecture:components} the components that interact around the EKF Localization node can be seen. In the center of the figure the \inlinesrc{EKFSLAM} component is placed, which is responsible of running the EKF-SLAM algorithm. Every time an \inlinesrc{Odometry} message arrives, the prediction step takes place, and this happens every 30Hz. Furthermore, every time a \inlinesrc{RangeAndBearingPoles} or a \inlinesrc{QRCodeStamped} arrives the correction step takes place, and differently to the prediction step, this depends on whether the drone observes or not a pole or a marker. Additionally, the \inlinesrc{EKFSLAM} component provides three services:
+In Figure~\ref{fig:chapter2:architecture:components} the components that interact around the \ac{EKF} Localization node can be seen. In the center of the figure the \inlinesrc{EKFSLAM} component is placed, which is responsible of running the EKF-SLAM algorithm. Every time an \inlinesrc{Odometry} message arrives, the prediction step takes place, and this happens every 30Hz. Furthermore, every time a \inlinesrc{RangeAndBearingPoles} or a \inlinesrc{QRCodeStamped} arrives the correction step takes place, and differently to the prediction step, this depends on whether the drone observes or not a pole or a marker. Additionally, the \inlinesrc{EKFSLAM} component provides three services:
 \begin{enumerate}
     \item \inlinesrc{get_drone_state}: takes no arguments, and returns the current localization of the drone \inlinesrc{Pose} message.
     \item \inlinesrc{get_marker_state}: takes as argument the id of a marker, and returns the current estimated pose of that marker\inlinesrc{Pose} message.
@@ -409,11 +439,11 @@ The \inlinesrc{MapManager} class contains a list of \inlinesrc{Landmark}s, and e
 
 Figure~\ref{fig:chapter2:architecture:nodes:ekf_node} shows the detail for the localization node, \inlinesrc{/ekf_localization_node}, with all its subscriptions. It is worth to mention the \inlinesrc{/qr_code_node}, which publishes the markers position with its identifier, subscribes to \inlinesrc{/visp_auto_tracker/code_message} and \inlinesrc{/visp_auto_tracker/object_position}, and publishes into \inlinesrc{/visp_auto_tracker/stamped_object_position} topic.\\
 
-Regarding the ROS nodes that comprise the system, in Figure~\ref{fig:chapter2:architecture:nodes:all} all the ones that interact with the localization node and all the others are shown. The EKF-SLAM node, and as mentioned before, interacts with \inlinesrc{/mavros} node, all the poles identification nodes (\inlinesrc{/poles_vision_#}), the \inlinesrc{/qr_code_node}, and the \inlinesrc{/rtabmap} node that provides the Octomap messages. The message passing is represented by arrows, where an incoming arrow means that a node subscribes to the message topic, while an outgoing arrow means that the node publishes that message topic. Arrows go from a node to a topic or from a topic to a node, but do not go from node to node. Its reason lies on the fact that nodes interact between each other using a message passing interface as mention in Section~\ref{sec:chapter1:ros}. Furthermore, it is worth to mention that in Figure~\ref{fig:chapter2:architecture:nodes:all} a \inlinesrc{/gazebo} node is present. This node appears only on simulation and represents the simulated environment, that is why it publishes all the cameras and stereo cameras information.\\
+Regarding the \ac{ROS} nodes that comprise the system, in Figure~\ref{fig:chapter2:architecture:nodes:all} all the ones that interact with the localization node and all the others are shown. The EKF-SLAM node, and as mentioned before, interacts with \inlinesrc{/mavros} node, all the poles identification nodes (\inlinesrc{/poles_vision_#}), the \inlinesrc{/qr_code_node}, and the \inlinesrc{/rtabmap} node that provides the Octomap messages. The message passing is represented by arrows, where an incoming arrow means that a node subscribes to the message topic, while an outgoing arrow means that the node publishes that message topic. Arrows go from a node to a topic or from a topic to a node, but do not go from node to node. Its reason lies on the fact that nodes interact between each other using a message passing interface as mention in Section~\ref{sec:chapter1:ros}. Furthermore, it is worth to mention that in Figure~\ref{fig:chapter2:architecture:nodes:all} a \inlinesrc{/gazebo} node is present. This node appears only on simulation and represents the simulated environment, that is why it publishes all the cameras and stereo cameras information.\\
 \begin{figure}
     \centering
     \includegraphics[width=\textwidth]{Images/fig11-rosgraph_all}
-    \caption[ROS graph of the system]{ROS graph of the system. Nodes are depicted as ellipses, while message topics are depicted as boxes. Each arrow means that a node publishes or subscribes to a specific message topic.}
+    \caption[ROS graph of the system]{\ac{ROS} graph of the system. Nodes are depicted as ellipses, while message topics are depicted as boxes. Each arrow means that a node publishes or subscribes to a specific message topic.}
     \label{fig:chapter2:architecture:nodes:all}
 \end{figure}
 

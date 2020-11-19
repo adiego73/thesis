@@ -1,7 +1,28 @@
 \chapter{Conclusions and Future Work}
-\label{chapter4}
+\label{ch:chapter4}
+In Chapter~\ref{ch:chapter2} the proposed implementation was presented and in Chapter~\ref{ch:chapter3}, experiments and their results were showed. This Chapter presents the conclusions related to the performed experiments, and some thoughts about the proposed implementation.\\
 
-\section{Conclusion}
+Moreover, future lines of research are proposed for localization and mapping in the context of the Leonardo Drone Contest environment.
+
+\section{Conclusions}
+The EKF-SLAM algorithm is a proved and extensively used algorithm for localization and mapping problems in robotics. The \ac{KF} introduced in 1960, later refined for non-linear systems and introduced by \cite{ekf-slam-smith} for localization and mapping problems, is implemented by this work. The proposed implementation was developed in the context of the Leonardo Drone Contest, which has specific characteristics.\\
+
+Several experiments were conducted with the aim of identify specific characteristics and implementation details that are important for the objective of the algorithm. In this sense, and as explained in Chapter~\ref{ch:chapter3}, four set of experiments were conducted, each of them with a specific objective. From these experiments, some conclusions can be extracted.\\
+
+The first two sets of experiments shed some light about the importance of different types of landmarks, in this particular case, poles and markers. These experiments showed the importance of poles in the correction of X, Y and Z position and the orientation of the drone, and the importance of markers in the localization process. Moreover, the correction of drone's pose is important also for the prediction of the markers' poses as can be seen in Table~\ref{tab:chapter3:simulated:experiments:b:distance}. The average Euclidean distance of the four markers is 0.134, which is good enough for the contest but also perfectible. The same can be observed in the case of the orientation, which in the worst case is 3\textdegree.\\
+
+The third experiment showed that the height estimation can be corrected using a combination of Octomap and range sensor. As mentioned in Section~\ref{subsubsec:chapter3:simulation:c:results} a key component for the height estimation is the completeness and correctness of the Octomap. This experiment showed that when the Octomap and the sensor range produce good measurements, the height estimation follows the ground truth. However, the experiment could be defined as not conclusive since the amount of time with Octomap measurements is low: only 70 seconds out of 363.\\
+
+Finally, the last set of experiments showed the importance of the \ac{NEES} test for the consistency of the filter. As can be appreciated in Figure~\ref{fig:chapter3:simulation:d:no-nees-test}, when no \ac{NEES} test is used, the pose correction is too bad to be used in any environment. It can be concluded that \ac{NEES} is needed to filter out invalid measurements. However, a value of $\chi^2$ needs to be found in order to achieve better performance. As showed in Figure~\ref{fig:chapter3:simulation:d:nees-10-discarded-markers}, lower confidence of valid measurements makes the filter to discard truly bad measurements, but on the other hand can discard measurements that can be useful to correct the drone's pose. The $\chi^2$ value can should be set for every type of landmark, thus it becomes a new parameter to be tuned in the filter.\\
+
+It can be concluded that the current implementation works well in the current environment and in the context of the used \ac{ROS} bags. However, a fine tuning is needed in order to improve its performance in simulation. The observation noise covariance matrices were barely tuned, and the $\chi^2$ values used were the most common ones (confidence of 95\%).\\
+
+As mentioned before, EKF-SLAM is a proved algorithm and works with a decent performance in the current environment. The proposed implementation sets the bases for future developments and improvements, and can be used as baseline for comparison with more complex or novel algorithms. Moreover, the proposed implementation can be extended in order to be applied in other indoor or GNSS-denied environments with minimum modifications. Its architecture was thought to be slightly coupled and highly extensible in the sense that new landmarks and observations types can be added in an easy way.
 
 \section{Future Work}
+As stated in Chapter~\ref{ch:chapter0:intro}, the current implementation could not be deployed and tested in the real drone, hence it would be an important step to evaluate it. The real drone experimentation should be done considering both poles and markers for the localization. Moreover, the performance while mapping the environment should be evaluated, as well as the height correction.\\
+
+As already stated, the current implementation is perfectible and can be improved in different ways. Fine tuning of the algorithm's parameters to improve its performance is needed. Another improvement could be a camera self calibration procedure to improve the Z position estimation using poles and markers. Also, extensive experimentation with Octomap and range sensor for height update is needed.\\
+
+Additionally, it could be possible to compare the current algorithm with other algorithms like Error-State EKF-SLAM, or \ac{UKF} SLAM, and evaluate their performance with the current implementation as baseline.
 
