@@ -44,7 +44,7 @@ The drone considered for this analysis has a common characteristics, such as fou
 \begin{figure}
     \centering
     \includegraphics[width=0.5\textwidth]{Images/fig4-quad-frame.png}
-    \caption{3DR Iris Quadrotor frame.}
+    \caption[3DR Iris Quadrotor frame.]{3DR Iris Quadrotor frame \cite{mavros}.}
     \label{fig:chapter2:drone:frame}
 \end{figure}
 
@@ -195,7 +195,7 @@ where $T_w^b$ is the transformation matrix from body to world reference frame. T
         a_{avg, x} \\ a_{avg, y} \\ a_{avg, z} \\ a_{avg, \psi}
     \end{bmatrix}
 \end{equation}
-The multiplication in (\ref{eq:chapter2:prediction:control_cov}) provides an approximate mapping between the motion noise in control space and the motion noise in the state space.\\
+The multiplication in equation (\ref{eq:chapter2:prediction:control_cov}) provides an approximate mapping between the motion noise in control space and the motion noise in the state space.\\
 
 Finally, the covariance update should be computed as follow
 \begin{align}

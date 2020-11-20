@@ -1,2 +1,63 @@
 \chapter{Documentation}
 \label{appendix:a}
+
+An overall description of the proposed architecture can be seen in Section~\ref{sec:chapter2:arch}. The main classes that belong to the localization and mapping node are: \inlinesrc{EKF}, \inlinesrc{EKFSLAM}, \inlinesrc{MapManager}, \inlinesrc{Landmark}, \inlinesrc{Pole}, \inlinesrc{Marker} and \inlinesrc{Range}.\\
+
+If adding a new type of landmark is needed, the new class should extend the \inlinesrc{Landmark} class and override and implement the pure virtual methods:
+\begin{itemize}
+    \item \inlinesrc{Eigen::VectorXd getObservationModel(const DroneState &drone_state) const}
+    \item \inlinesrc{Eigen::MatrixXd getJacobianWrtDroneState(const DroneState &drone_state, int drone_state_size) const}
+\end{itemize}
+Both methods are needed whatever the type of landmark is added. Moreover, if the new type of landmark is going to be added to the state vector, it is needed to override the following methods:
+\begin{itemize}
+    \item \inlinesrc{Eigen::MatrixXd getJacobianWrtLandmarkState(const DroneState &drone_state) const}
+    \item \inlinesrc{const Eigen::VectorXd & getInverseObservationModel(const DroneState &drone_state, const Eigen::VectorXd &observation)}
+    \item \inlinesrc{Eigen::MatrixXd getInverseJacobianWrtDroneState(const DroneState &drone_state, int drone_state_size) const}
+    \item \inlinesrc{Eigen::MatrixXd getInverseJacobianWrtLandmarkState(const DroneState &drone_state) const}
+\end{itemize}
+
+\section*{Map}
+The map is a YAML file that can be found under \inlinesrc{map} folder, with the name \inlinesrc{landmarks.map.yaml}. It has the following structure:
+\begin{lstlisting}
+- LandmarkType:
+    - id: XXX
+    x: XXX
+    y: XXX
+    z: XXX
+    roll: XXX
+    pitch: XXX
+    yaw: XXX
+    - id: YYY
+    ....
+- OtherLandmarkType:
+    .....
+
+\end{lstlisting}
+
+\section*{Parameters}
+A file used to configure the parameters of the node can be found under \inlinesrc{config} folder. The file is called \inlinesrc{params.yaml}:
+\begin{itemize}
+    \item{\inlinesrc{ekf_localization_node}:
+        \begin{itemize}
+            \item{\inlinesrc{enable_poles_subscriber} (bool): enable or disable the usage of poles in the localization process.}
+            \item{\inlinesrc{enable_markers_subscriber} (bool): enable or disable the usage of markers in the localization and mapping process.}
+            \item{\inlinesrc{enable_range_subscriber} (bool): enable or disable the usage of range information to correct the height estimation.}
+            \item{\inlinesrc{drone_pose_topic} (string): defines the topic where the drone's updated odometry is published.}
+            \item{\inlinesrc{markers_pose_topic} (string): defines the topic where the node will publish the markers' state.}
+            \item{\inlinesrc{initial_position_x} (float): initial X position of the drone.}
+            \item{\inlinesrc{initial_position_y} (float): initial Y position of the drone.}
+            \item{\inlinesrc{initial_position_z} (float): initial Z position of the drone.}
+            \item{\inlinesrc{initial_position_yaw} (float): initial YAW orientation of the drone.}
+            \item{\inlinesrc{avg_linear_vel} (float): average drone's linear velocity. This is used in the estimation of the control noise covariance matrix}
+            \item{\inlinesrc{avg_angular_vel} (float): average drone's angular velocity. This is used in the estimation fo the control noise covariance matrix.}
+            \item{\inlinesrc{range_noise_covariance} (float): noise covariance value for range sensor.}
+            \item{\inlinesrc{poles_noise_covariance} (list<float>): noise covariance matrix ($3\times 3$) values for the poles observations.}
+            \item{\inlinesrc{markers_noise_covariance} (list<float>): noise covariance matrix ($6\times 6$) values for the markers observations.}
+            \item{\inlinesrc{odometry_topic} (string): topic used as control signal. It is used in the prediction step and uses the velocities published in this topic.}
+            \item{\inlinesrc{pole_landmark_topic} (string): topic where the range and bearing information is published for poles observations.}
+            \item{\inlinesrc{marker_landmark_topic} (string): topic where the markers observations is published.}
+            \item{\inlinesrc{octomap_topic} (string): topic where the Octomap information is published.}
+            \item{\inlinesrc{range_sensor_topic} (stirng): topic where the range sensor information is published.}
+        \end{itemize}
+    }
+\end{itemize}

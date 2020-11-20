@@ -1,2 +1,77 @@
 \chapter{User Manual}
 \label{appendix:b}
+
+The implementation presented in this work can be downloaded from \url{https://github.com/AIRLab-POLIMI/POLIBRI}. As mentioned before, the \inlinesrc{ekf_localization} package's objective is to estimate the localization of the drone using an \ac{EKF} filter and map the markers in the environment. The control variables are the linear and angular velocities of the drone with respect to the map, and the state is composed by the drone's position with respect to the map, and the markers' position with respect to the map.\\
+
+The transform tree can be seen in Figure~\ref{fig:chapter2:drone:frames:frames}. All the odometry messages use the \ac{ENU} or right hand convention, and all the measurement units are in meters or meters/secs for velocities. Angle units are in radians.\\
+
+There are currently two nodes: one, \inlinesrc{ekf_localization_node}, is responsible of the state estimation; and the other, \inlinesrc{qr_code_node}, will stamp the messages related to the QR markers. The \inlinesrc{qr_code_node} node subscribes to the following messages:
+\begin{itemize}
+    \item{\inlinesrc{/visp_auto_tracker/code_message} of type \inlinesrc{std_msgs/String}}
+    \item{\inlinesrc{/visp_auto_tracker/stamped_message} of type \inlinesrc{ekf_localization/StringStamped}}
+    \item{\inlinesrc{/visp_auto_tracker/object_position} of type \inlinesrc{geometry_msgs/PoseStamped}}
+\end{itemize}
+and publishes the following messages:
+\begin{itemize}
+    \item{\inlinesrc{/visp_auto_tracker/stamped_object_position} of type \inlinesrc{ekf_localization/QRCodeStamped}}
+    \item{\inlinesrc{/visp_auto_tracker/stamped_message} of type \inlinesrc{ekf_localization/StringStamped}}
+\end{itemize}
+
+
+The \inlinesrc{ekf_localization_node} subscribes to the following messages (\emph{all these messages can be configured in params.yaml}):
+\begin{itemize}
+    \item{\inlinesrc{/gazebo/ground_truth} or \inlinesrc{/mavros/local_position/odom}}
+    \item{\inlinesrc{/visp_auto_tracker/stamped_object_position}}
+    \item{\inlinesrc{/pole_localization}}
+\end{itemize}
+and publishes
+\begin{itemize}
+    \item{\inlinesrc{/drone/pose}}
+    \item{\inlinesrc{/markers/pose}}
+\end{itemize}
+it also provides 3 services:
+\begin{itemize}
+    \item{\inlinesrc{/get_drone_state} which provides the drone pose}
+    \item{\inlinesrc{/get_marker_state} which provides the estimated pose of a given marker}
+    \item{\inlinesrc{/save_map} which saves the landmarks map}
+\end{itemize}
+
+\section*{Simulator setup}
+To install and run the simulator refer to the \inlinesrc{README.txt} in the Simulator folder of the repository.
+
+\section*{Build and run the nodes}
+\subsection*{Dependencies}
+There are some dependencies needed to compile the code.
+\begin{itemize}
+    \item{\textbf{Eigen 3}: \url{http://eigen.tuxfamily.org/}}
+    \item{\textbf{YAML-cpp}: \url{https://github.com/jbeder/yaml-cpp}}
+    \item{\textbf{Boost}: \url{https://www.boost.org/}}
+\end{itemize}
+
+\subsection*{Steps}
+Once you have set up the simulator, you can build the nodes.
+\begin{enumerate}
+    \item{Clone the repository on your \inlinesrc{~/catkin_ws/src} folder}
+    \item{If you are using catkin tools, from \inlinesrc{~/catkin_ws} run \inlinesrc{catkin build ekf_localization}. If you are using plain catkin, run \inlinesrc{catkin_make --only-pkg-with-deps ekf_localization}.}
+    \item{In different terminals run:
+        \begin{enumerate}
+            \item{\inlinesrc{roscd px4} and then, \inlinesrc{no_sim=1 make px4_sitl_default gazebo}}
+            \item{from \inlinesrc{~/catkin_ws}, run \inlinesrc{./launch_gazebo.sh}}
+            \item{\inlinesrc{roslaunch rtabmap_ros my_stereo_mapping_2.launch} (if you want to run \ac{RViz}, you can add at the end \inlinesrc{rviz:=true})}
+            \item{\inlinesrc{roslaunch ekf_localization my_launch.launch}, this will run the node responsible of the state estimation and the one responsible of stamp the marker's information}
+            \item{If you want to run the planner scripts, you can run in different terminals:
+                \begin{enumerate}
+                    \item{\inlinesrc{python Simulator/offboard/start_offboard.py}}
+                    \item{\inlinesrc{python Simulator/offboard/path_generation.py}}
+                \end{enumerate}
+            }
+        \end{enumerate}
+    }
+\end{enumerate}
+
+\subsection*{Build and run the nodes using a rosbag}
+The nodes can be debugged by launching the [debug.launch](launch/debug.launch) file. To do so, you just need to run the following: \inlinesrc{$ roslaunch ekf_localization debug.launch}.\\
+
+Several arguments can be passed to the launch file, like the folder to find a rosbag, the name of the rosbag, record a new rosbag, specify topics to record, launch \ac{RViz}, etc.
+
+
