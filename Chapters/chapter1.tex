@@ -16,7 +16,7 @@ As mentioned before, communication between nodes is done via a publisher-subscri
 
 \begin{figure}
     \centering
-    \includegraphics{Images/fig13-ros-basic-concept.eps}
+    \includegraphics[width=0.7\linewidth]{Images/fig13-ros-basic-concept.eps}
     \caption[ROS basic concept]{\ac{ROS} basic concepts. Two nodes communicate between them using the messages published in a topic. One node is responsible of publishing the topic, while the other subscribes and receives the messages of that particular topic. Furthermore, the node in the left calls a service provided by the node in the right, so that node will perform some computation and will return the result. \cite{ros-website}}
     \label{fig:chapter1:ros:basic_concepts}
 \end{figure}
@@ -136,9 +136,9 @@ Given the matrix representation of a rotation, it is possible to provide a way t
 
 As mentioned, unlike translations, rotations cannot be summed. Hence, if two consecutive rotations need to be performed around two axis, a multiplication is needed:
 \begin{align}
-    \bm{R_{y,x}} = \bm{R_{x, \alpha}} * \bm{R_{y, \beta}}
+    \bm{R_{z,x}} = \bm{R_{x, \alpha}} * \bm{R_{z, \beta}}
 \end{align}
-where $\bm{R_{y,x}}$ is the rotation around axis $y$ by an angle $\beta$ followed by a rotation around the new axis $x$ by an angle $\alpha$, as shown in Figure~\ref{fig:chapter1:transform:rotation_z_x}.
+where $\bm{R_{z,x}}$ is the rotation around axis $z$ by an angle $\beta$ followed by a rotation around the new axis $x$ by an angle $\alpha$, as shown in Figure~\ref{fig:chapter1:transform:rotation_z_x}.
 
 \begin{figure}
     \centering
@@ -158,6 +158,8 @@ A rotation and a translation can be accomplished as follow: $\hat{\bm{v}} = \bm{
     \label{eq:chapter1:transform:homogeneous_transform}\\
     \hat{\bm{v}}^n &= \bm{T}_m^n\bm{v}^m
 \end{align}
+The rotation component of $\bm{T}_m^n$ needs to be defined. Several definitions are possible, and in this work the \emph{RPY} order is used. RPY order of rotations establishes the order of the rotations applied to the three axis given three different angles. Therefore, $\bm{R}_m^n$ is a sequence of rotations around the X axis, Y axis and Z axis, given $\phi$, $\theta$ and $\psi$ angles, which is the same as $R_{z,\psi}R_{y,\theta}R_{x,\phi}$.\\
+
 As can be noticed in equation~(\ref{eq:chapter1:transform:homogeneous_transform}), the homogeneous transformation is represented by a $4 \times 4$ matrix, and unlike the pure rotation matrix showed in Section~\ref{subsec:chapter1:transform:rotation}, the inverse of the homogeneous transformation is not equal to its transpose. The inverse of the homogeneous transformation is equivalent to:
 \begin{align}
     \bm{T}^{-1} &= \begin{bmatrix}
@@ -179,12 +181,11 @@ As can be noticed in equation~(\ref{eq:chapter1:transform:homogeneous_transform}
 
 Introduced by \cite{kalman}, the \ac{KF} provides a recursive method for estimating the state of a dynamic system with presence of noise. It is a technique for filtering and prediction in \emph{linear Gaussian systems} and applicable only to continuous states. One of its key features is that it simultaneously maintains estimates of the state vector and the estimate error covariance. It assures that the posteriors are Gaussian if the Markov assumption is hold, in addition to three conditions. The Markov assumption states that the past and future data are independent if one knows the current state; the other three conditions are the following:
 \begin{enumerate}
-    \item{The state transition probability $p\left( x_t | u_t, x_{t-1}\right)$ must be a linear function in its arguments. This is guaranteed by $ x_t = A_t x_{t-1} + B_t u_t + \epsilon_t $. Here, $x_t$ and $x_{t-1}$ are the state vectors, of size $n$, and $u_t$ represents the control vector, of size $m$, at time $t$; $A_t$ and $B_t$ are matrices of size $n \times n$ and $n\times m$ respectively. In this way, the state transition function becomes linear in its arguments, hence \ac{KF} assumes a linear system dynamics. \\\\ $\epsilon_t$ represents the uncertainty introduced by the state transition, and it is a Gaussian random variable with zero mean and $R_t$ covariance.}
+    \item{The state transition probability $p\left( x_t | u_t, x_{t-1}\right)$ must be a linear function in its arguments. This is guaranteed by $ x_t = A_t x_{t-1} + B_t u_t + \epsilon_t $. Here, $x_t$ and $x_{t-1}$ are the state vectors of size $n$, and $u_t$ represents the control vector of size $m$ at time $t$; $A_t$ and $B_t$ are matrices of size $n \times n$ and $n\times m$ respectively. In this way, the state transition function becomes linear in its arguments, hence \ac{KF} assumes a linear system dynamics. \\\\ $\epsilon_t$ represents the uncertainty introduced by the state transition, and it is a Gaussian random variable with zero mean and $R_t$ covariance.}
     \item{The measurement probability $p\left(z_t | x_t\right)$ must be linear in its arguments. This is guaranteed by $z_t = C_t x_t + \delta_t$, where $z_t$ represents the measurement vector of size $k$, $C_t$ is a matrix of size $k \times n$ and $\delta_t$ is a Gaussian noise with zero mean and $Q_t$ covariance.}
     \item{The initial belief should be normally distributed.}
 \end{enumerate}
-Given these three conditions, we are guaranteed that the posterior probability is Gaussian.
-
+Given these three conditions, we are guaranteed that the posterior probability is Gaussian.\\
 \begin{algorithm}[h]
     \caption{Kalman Filter algorithm}
     \label{alg:chapter1:kf}
@@ -247,8 +248,7 @@ The same linearization is applied to the observation function $h$:
         h'\left(\hat\mu_t\right) = \frac{\partial h\left(x_t\right)}{\partial x_t}
 \end{equation}
 where $h'$ is the Jacobian of $h$, usually expressed as $H_t$. In this case, the linearization is done around $\hat\mu_t$, which is the state estimate just before computing $h$.\\
-
-\begin{figure}[h]
+\begin{figure}
     \centering
     \includegraphics{Images/fig2-ekf-linearization.png}
     \caption[Linearization applied in EKF]{Linearization applied in \ac{EKF}. In this case, the nonlinear function $g$ is approximated using first order Taylor expansion, that is a linear function tangent to $g$ at the mean of the original density function. The linearization is not perfect, so it adds an error, depicted in the upper left plot. This error is the difference between the dashed line and the solid line. \cite{prob-robotics}}
@@ -257,7 +257,7 @@ where $h'$ is the Jacobian of $h$, usually expressed as $H_t$. In this case, the
 
 The Figure~\ref{fig:chapter1:kf:ekf:ekf-linearization} depicts the approximation of $g$ by a linear function that is tangent around its mean. The resulting density function is shown in the upper left plot with a dashed line, that is similar to the original density function.\\
 
-\begin{algorithm}[h]
+\begin{algorithm}
     \caption{Extended Kalman Filter algorithm}
     \label{alg:chapter1:kf:ekf}
 
@@ -439,7 +439,7 @@ The Mahalanobis distance is a measure of the distance between a point and a dist
     D = \sqrt{\left(\bm{x} - \bm{\mu}\right) \Sigma^{-1} \left(\bm{x} - \bm{\mu}\right)}
     \label{eq:chapter1:nees:mahalanobis}
 \end{equation}\\
-Every time the drone observes a pole or a marker, a node responsible of identifying the landmark processes the features that distinguish it with respect to other landmarks, and publishes these features as a message. In the case of poles, the message type is \inlinesrc{RangeAndBearingPole}, which contains the range and bearing information, and in the case of markers the message type is \inlinesrc{Pose}, which contains the position and orientation information of the observed marker. Given this, each observation $z$ for a pole, is composed by three measurements, and each observation of a marker is composed by six measurements. After observing a landmark the Algorithm~(\ref{alg:chapter1:slam:ekfslam}) calculates the discrepancy between the observation $i$ and the predicted observation by the innovation ($v^i$), and its covariance ($S$), as
+Every time the drone observes a pole or a marker, a node responsible of identifying the landmark processes the features that distinguish it with respect to other landmarks, and publishes these features as a message. In the case of poles range and bearing information is provided, while in the case of markers the position and orientation information with respect to the camera frame is provided. Given this, each observation $z$ for a pole, is composed by three measurements, and each observation of a marker is composed by six measurements. After observing a landmark the Algorithm~(\ref{alg:chapter1:slam:ekfslam}) calculates the discrepancy between the observation $i$ and the predicted observation by the innovation ($v^i$), and its covariance ($S$), as
 \begin{align*}
     v^i =  z_t^i - h^i \left( \hat\mu_t \right)\\
     S = H_t^i \hat\Sigma_t H_t^{iT} + Q_t

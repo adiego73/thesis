@@ -1,6 +1,6 @@
 \chapter{EKF-SLAM Implementation}
 \label{ch:chapter2}
-In Chapter~\ref{ch:chapter1} the EKF-SLAM algorithm in the context of \ac{SLAM} was explained. As mentioned in Section~\ref{sec:chapter1:kf}, the algorithm can be summarized in two steps: prediction and correction. In the first stage involves the prediction of the next state of the system, meanwhile, during the correction stage, this estimation is updated. However, differently from the Algorithm~(\ref{alg:chapter1:slam:ekfslam}), the proposed implementation adds a \ac{NEES} test with th objective of improving the consistency of the filter. The updated version of the algorithm can be seen in Algorithm~(\ref{alg:chapter2:implementation:ekfslam}).\\
+In Chapter~\ref{ch:chapter1} the EKF-SLAM algorithm in the context of \ac{SLAM} was explained. As mentioned in Section~\ref{sec:chapter1:kf}, the algorithm can be summarized in two steps: prediction and correction. The first stage involves the prediction of the next state of the system, meanwhile, during the correction stage this estimation is updated. However, differently from the Algorithm~(\ref{alg:chapter1:slam:ekfslam}), the proposed implementation adds a \ac{NEES} test with th objective of improving the consistency of the filter. The updated version of the algorithm can be seen in Algorithm~(\ref{alg:chapter2:implementation:ekfslam}).\\
 \begin{algorithm}[h]
     \caption{EKF-SLAM algorithm with NEES test}
     \label{alg:chapter2:implementation:ekfslam}
@@ -419,7 +419,7 @@ It is worth to mention that the messages of type \inlinesrc{QRCodeStamped} are p
 \begin{figure}
     \centering
     \includegraphics[width=0.5\textwidth]{Images/fig10-class_diagram}
-    \caption[Class diagram of the EKFSLAM node]{Class diagram of the EKFSLAM node. The \inlinesrc{EKFSLAM} class is composed by a \inlinesrc{MapManager} instance, which is composed by a list of \inlinesrc{Landmarks}. The \inlinesrc{Landmark} class is abstract and its concrete classes are \inlinesrc{Pole} and \inlinesrc{Marker}.}
+    \caption[Class diagram of the EKFSLAM node]{Class diagram of the EKFSLAM node. The \inlinesrc{EKFSLAM} class is composed by a \inlinesrc{MapManager} instance, which is composed by a list of \inlinesrc{Landmarks}. The \inlinesrc{Landmark} class is abstract and its concrete classes are \inlinesrc{Range}, \inlinesrc{Pole} and \inlinesrc{Marker}.}
     \label{fig:chapter2:architecture:class}
 \end{figure}
 
@@ -427,7 +427,7 @@ The main element of the EKF-SLAM node is the \inlinesrc{EKFSLAM} class which is 
 
 There are several components that interact within \inlinesrc{EKFSLAM} class, but probably the most interesting one is the \inlinesrc{MapManager} class. This class is responsible of maintaining an updated map of the environment with all the poles and markers, and to save and retrieve the map from a YAML file.\\
 
-The \inlinesrc{MapManager} class contains a list of \inlinesrc{Landmark}s, and every time the state vector is updated in \inlinesrc{EKFSLAM} class, the \inlinesrc{MapManager} class updates the information about each \inlinesrc{Marker}. As mentioned before, the pose of each pole is known and needs no update. Furthermore, the \inlinesrc{Landmark} class is specialized in a \inlinesrc{Marker} class and a \inlinesrc{Pole} class, each of which is responsible of provide the observation model associated to it and the needed Jacobian matrices for the algorithm, hiding the implementation to the \inlinesrc{EKFSLAM} class.
+The \inlinesrc{MapManager} class contains a list of \inlinesrc{Landmark}s, and every time the state vector is updated in \inlinesrc{EKFSLAM} class, the \inlinesrc{MapManager} class updates the information about each \inlinesrc{Marker}. As mentioned before, the pose of each pole is known and needs no update. Furthermore, the \inlinesrc{Landmark} class is specialized in a \inlinesrc{Marker} class, a \inlinesrc{Pole} class and a \inlinesrc{Range} class, each of which is responsible of provide the observation model and the needed Jacobian matrices for the algorithm associated to a specific type of landmark or observation, hiding the implementation to the \inlinesrc{EKFSLAM} class.
 \subsection{ROS nodes}
 \label{subsec:chapter2:arch:nodes}
 \begin{figure}[h]
