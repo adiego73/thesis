@@ -10,3 +10,5 @@
 *.toc
 *-blx.bib
 *.run.xml
+*.snm
+*.nav
