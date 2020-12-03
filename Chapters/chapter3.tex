@@ -13,9 +13,9 @@ An important thing to mention is that the ground truth is provided by a Gazebo p
 
 Figure~\ref{fig:chapter3:odom-only} shows the representation of the odometry used for control purposes, as well as the MAVROS estimate and the ground truth. The figure shows the drift in the MAVROS estimate and in the EKF-SLAM estimate. The yaw estimate follows the ground truth with almost no drift in both MAVROS and EKF-SLAM estimators, while the drone's height does not follow the ground truth at all in the EKF-SLAM process.\\
 
-It is worth to mention that the negative sign in the Z position of the EKF-SLAM process is due to negative velocities in the control signal. This is not something to be concerned about and it is the expected behavior given the linear velocities provided by MAVROS. The positive velocity while the drone takes off is not hold during enough time to position the Z prediction near the ground truth. Furthermore, the linear velocity control signal for the first 25 seconds is negative, which makes the drone "flight below ground". The take off starts at the second 25 and pushes the drone over the ground for some seconds, while the linear velocity published by MAVROS oscillates in between positive and negative values, being the last ones more often. This does not happen with the MAVROS estimator, because it has an own filter that produces the Z position estimation. Hence, the comparison in this case is worthless. The MAVROS \ac{EKF} filter has nothing to do with the motion model in the EKF-SLAM algorithm which does not correct the prediction in any sense.\\
+It is worth to mention that the negative sign in the Z position of the EKF-SLAM process is due to negative velocities in the control signal. This is not something to be concerned about and it is the expected behavior given the linear velocities provided by MAVROS. The positive velocity while the drone takes off is not hold during enough time to position the Z prediction near the ground truth. Furthermore, the linear velocity control signal for the first 25 seconds is negative, which makes the drone "fly below ground". The take off starts at the second 25 and pushes the drone over the ground for some seconds, while the linear velocity published by MAVROS oscillates in between positive and negative values, being the last ones more often. This does not happen with the MAVROS estimator, because it has an own \ac{EKF} filter that produces the Z position estimation. Hence, the comparison in this case is meaningless. The MAVROS \ac{EKF} filter has nothing to do with the motion model in the EKF-SLAM algorithm which does not correct the prediction in any sense.\\
 
-Less evident is the position estimate in X and Y, where the MAVROS estimation is near the ground truth despite it drifts over time. The EKF-SLAM motion model drifts in a more evident way, both in X and Y: it starts in the same position as the ground truth, and it constantly moves away the control signal. However, and unlike the Z position, both MAVROS and EKF-SLAM motion model follow the ground truth position. Again, comparing the MAVROS estimate with the EKF-SLAM prediction is worthless as one is filtered, while the other is composed by prediction-only.
+Less is the error in the position estimates in X and Y, where the MAVROS estimation is near the ground truth despite it drifts over time. The EKF-SLAM motion model drifts in a more evident way, both in X and Y: it starts at the same position as the ground truth, but constantly moves away from it. However, and unlike the Z position, both MAVROS and EKF-SLAM motion model follow the ground truth position. Again, comparing the MAVROS estimate with the EKF-SLAM prediction is meaningless as the first one is the result of an \ac{EKF} that uses the measurements provided by the flight controller (IMU, rotors speed, etc.) to predict and update the state, while the second one is composed only by the prediction resulting from the motion model.
 \begin{figure}
     \centering
     \includegraphics[width=\textwidth]{Images/fig19-odom_only}
@@ -49,25 +49,25 @@ All these experiments were carried out using the same bag, unless the contrary i
 
 \subsection{Experiments A: The importance of poles}
 \label{subsec:chapter3:simulation:a}
-The experiments presented in this section were done with the objective of understanding the importance of poles in the localization of the drone in the environment. Two experiments were performed: the first experiment was carried out with known-noise observations of poles, while the second experiment was carried out using the real measurements taken from the \ac{ROS} bag.
+The experiments presented in this section were done with the objective of understanding the importance of poles in the localization of the drone in the environment. Two experiments were performed: the first experiment was carried out with perfect observations of poles, while the second experiment was carried out using the real measurements taken from the \ac{ROS} bag.
 
 \subsubsection{Procedures}
 \label{subsubsec:chapter3:simulation:a:procedures}
-As mentioned, the first experiment was performed with known-noise observations of poles, with the objective of showing the perfect localization compared with the MAVROS localization and the ground truth. On the other hand, the second experiment was performed with the real observations taken from the \ac{ROS} bag, in order to understand if the proposed implementation works as well as with the perfect observations of the previous experiment.\\
+As mentioned, the first experiment was performed with perfect observations of poles, with the objective of showing the perfect localization compared with the MAVROS localization and the ground truth. On the other hand, the second experiment was performed with the real observations taken from the \ac{ROS} bag, in order to understand if the proposed implementation works as well as with the perfect observations of the previous experiment.\\
 
 In these experiments the same \ac{ROS} bag is used, and the measurements are taken during approximately 360 seconds. During the path, the drone visits few markers and pass over some obstacles, both of which are not taken into account in the localization process.
 
 \subsubsection{Results}
 \label{subsubsec:chapter3:simulation:a:results}
-The results in these experiments are shown in Figure~\ref{fig:chapter3:simulation:experimentsA:a} for known-noise pole observations and in Figure~\ref{fig:chapter3:simulation:experimentsA:b} for real poles observations. With respect to the first experiment, it can be said that the correction is almost perfect as the path followed by the drone follows the ground truth all the time. However, and as it is expected, in the second experiment the EKF-SLAM estimation follows the ground truth but with more noise than in the previous one. There are some moments in which the estimation is more noisy than usual: this has to do with occlusions and far-from-true measurements.
+The results in these experiments are shown in Figure~\ref{fig:chapter3:simulation:experimentsA:a} for perfect pole observations and in Figure~\ref{fig:chapter3:simulation:experimentsA:b} for real poles observations. With respect to the first experiment, it can be said that the correction is almost perfect as the path followed by the drone follows the ground truth all the time. However, and as it is expected, in the second experiment the EKF-SLAM estimation follows the ground truth but with more noise than in the previous one. There are some moments in which the estimation is more noisy than usual: this has to do with occlusions and far-from-true measurements.
 \begin{figure}
     \centering
     \includegraphics[width=\textwidth]{Images/fig20-exp-a1}
-    \caption{Localization with perfectly known noise of poles.}
+    \caption{Localization using perfect pole observations.}
     \label{fig:chapter3:simulation:experimentsA:a}
     \centering
     \includegraphics[width=\textwidth]{Images/fig20-exp-a2}
-    \caption{Localization using real poles' observations.}
+    \caption{Localization using real pole observations.}
     \label{fig:chapter3:simulation:experimentsA:b}
 \end{figure}
 
@@ -83,26 +83,30 @@ The experiments presented in this section were carried out using the same \ac{RO
 
 The experiments conducted are the followings:
 \begin{enumerate}
-    \item{The first experiment is similar to the ones presented in Section~\ref{subsec:chapter3:simulation:a}. The drone follows the path and estimates its pose based on markers only.}
+    \item{The first experiment is similar to the ones presented in Section~\ref{subsec:chapter3:simulation:a}. The drone follows the path and estimates its pose based on known markers only. This means that the drone performs only the localization, and no marker is added to the map.}
     \item{The second experiment is similar to the previous one, but it uses markers and poles to localize. However, the main difference with the previous experiments lies on the absence or not of a perfect map. This means that when the map is not available, the algorithm will create it, while if the map is available, the algorithm will use it to update the drone's pose.}
     \item{Finally, the third experiment measures the distance between the true position of markers and the one estimated by the algorithm in a context of real observations, both for markers and poles.}
 \end{enumerate}
 
 \subsubsection{Results}
 \label{subsubsec:chapter3:simulation:b:results}
-The first set of experiments related to the markers, aim to identify the marker's importance in the localization problem. Two plots are presented to this purpose, and are shown in Figure~\ref{fig:chapter3:simulation:b:fake-markers-real-map} and Figure~\ref{fig:chapter3:simulation:b:real-markers-real-map}. Figure~\ref{fig:chapter3:simulation:b:fake-markers-real-map} shows the path followed by the drone while using only the perfect observations of markers and the true map, while Figure~\ref{fig:chapter3:simulation:b:real-markers-real-map} shows the path followed while using real observations of markers with the true map.\\
+The first set of experiments related to the markers, aim to identify the marker's importance in the localization problem. Two plots are presented to this purpose, and are shown in Figure~\ref{fig:chapter3:simulation:b:fake-markers-real-map} and Figure~\ref{fig:chapter3:simulation:b:real-markers-real-map}. Figure~\ref{fig:chapter3:simulation:b:fake-markers-real-map} shows the path followed by the drone while using only the perfect observations of markers and a perfect map, while Figure~\ref{fig:chapter3:simulation:b:real-markers-real-map} shows the path followed while using real observations of markers with a perfect map. Having a perfect map means that the markers' poses are perfectly known, hence the true position and orientation is given to the algorithm. \\
 \begin{figure}
     \centering
-    \includegraphics[width=\textwidth]{Images/fig21-fake-markers-wmap.png}
-    \caption{Localization with perfect marker observations}
-    \label{fig:chapter3:simulation:b:fake-markers-real-map}
-    \centering
-    \includegraphics[width=\textwidth]{Images/fig21-real-marker-wmap.png}
-    \caption{Localization with real marker observations}
-    \label{fig:chapter3:simulation:b:real-markers-real-map}
+    \begin{subfigure}{\textwidth}
+        \includegraphics[width=1\linewidth]{Images/fig21-fake-markers-wmap.png}
+        \caption{Localization with perfect marker observations}
+        \label{fig:chapter3:simulation:b:fake-markers-real-map}
+    \end{subfigure}
+    \begin{subfigure}{\textwidth}
+        \includegraphics[width=1\linewidth]{Images/fig21-real-marker-wmap.png}
+        \caption{Localization with real marker observations}
+        \label{fig:chapter3:simulation:b:real-markers-real-map}
+    \end{subfigure}
+    \caption[Localization with perfect and real marker observations]{Localization with perfect \textbf{(a)} and real \textbf{(b)} marker observations. Between seconds 180 and 220, seconds 260 and 320, and from second 350 to the end, no marker is seen producing huge errors in the estimate.}
 \end{figure}
 
-It can be seen in both figures that, even if the path taken by the drone does not follow perfectly the ground truth, it accommodates when it sees a marker. This behavior can be appreciated between seconds 180 and 220, and can be seen in Figure~\ref{fig:chapter3:simulation:b:real-markers-correction-detail}.
+It can be seen in both figures that, even if the path taken by the drone does not follow perfectly the ground truth, it accommodates when it sees a marker. This behavior can be appreciated between seconds 180 and 220, and can be seen in Figure~\ref{fig:chapter3:simulation:b:real-markers-correction-detail}.\\
 \begin{figure}
     \centering
     \includegraphics[width=0.9\textwidth]{Images/fig21-real-marker-wmap-correction-detail.png}
@@ -126,15 +130,15 @@ Something worth understanding is how different is the localization process when 
 \begin{figure}
     \centering
     \includegraphics[width=\textwidth]{Images/fig22-true-poles-markers-nomap.png}
-    \caption{Localization and mapping using real pole and marker observations.}
+    \caption[Simultaneous localization and mapping using real pole and marker observations.]{Simultaneous localization and mapping using real pole and marker observations. The EKF-SLAM algorithm estimates the drone's pose while building a map from unknown markers' observations.}
     \label{fig:chapter3:simulation:b:real-poles-markers-no-map}
 \end{figure}
 
 Finally, the last set of experiments measure the distance between the true markers' pose and the one estimated by the algorithm. The Euclidean distance (in meters) is calculated for the position of the markers, and the orientation is shown as the relative rotation, needed to go from the estimated one to the true one, expressed as $\phi$, $\theta$ and $\psi$ (in radians). The Euclidean distance is defined as\\
 \begin{equation*}
-    D = \sqrt{(x - \hat{x})^2 + (y - \hat{y})^2 + (z - \hat{z})^2}
+    D = \sqrt{(x - \hat{x})^2 + (y - \hat{y})^2 + (z - \hat{z})^2}~~.
 \end{equation*}
-The results for those markers seen during the drone's path are presented in Table~\ref{tab:chapter3:simulated:experiments:b:distance}. The estimated pose and the ground truth can be seen in the Table~\ref{tab:chapter3:simulated:experiments:b:poses}. It is worth mentioning that all the markers' observations have an acceptance greater than 60\%:
+The results for those markers seen during the drone's path are presented in Table~\ref{tab:chapter3:simulated:experiments:b:distance}. The estimated pose and the ground truth can be seen in the Table~\ref{tab:chapter3:simulated:experiments:b:poses}. It is worth mentioning that more than the 60\% of the markers' observations were accepted by the \ac{NEES} test, and thus were considered for updating the state:
 \begin{itemize}
     \item{\textbf{Marker 0}: 69.36\%}
     \item{\textbf{Marker 1}: 65.68\%}
@@ -154,7 +158,7 @@ The results for those markers seen during the drone's path are presented in Tabl
         5 & 0.155 & 0.024 & 0.057 & 0.013\\
         \bottomrule
     \end{tabular}
-    \caption[Distance to true markers' pose]{Distance to between true markers' pose and the pose estimated by the EKF-SLAM algorithm.}
+    \caption[Distance to true markers' pose]{Distance between true markers' pose and the pose estimated by the EKF-SLAM algorithm. The Euclidean distance between markers is expressed in meters, while the distance between orientations is expressed in radians.}
     \label{tab:chapter3:simulated:experiments:b:distance}
 \end{table}
 
@@ -206,11 +210,11 @@ Figure~\ref{fig:chapter3:simulation:c:range-sensor} shows the same plot as befor
 First of all, having an incomplete or noisy Octomap makes the altitude estimation to reach wrong values, as can be seen between seconds 315 to 320. During this 5 seconds, the Octomap returns values near 2.5 meters for the voxels below the drone while the range sensor returns similar values, this makes the algorithm to estimate the Z position to up to 4 meters.\\
 \begin{figure}
     \centering
-    \includegraphics[width=\textwidth]{Images/fig23-laser.png}
+    \includegraphics[width=0.9\textwidth]{Images/fig23-laser.png}
     \caption[Height estimation aggregated with range sensor information]{Height estimation aggregated with range sensor information. This plot shows the accepted and discarded observations in the height estimation.}
     \label{fig:chapter3:simulation:c:range-sensor}
     \centering
-    \includegraphics[width=\textwidth]{Images/fig23-laser-detail.png}
+    \includegraphics[width=0.9\textwidth]{Images/fig23-laser-detail.png}
     \caption[Detail of height estimation aggregated with range sensor information]{Detail of height estimation aggregated with range sensor information. This plot shows the detail of accepted and discarded observations when the Octomap is available and the Z position correction is triggered.}
     \label{fig:chapter3:simulation:c:range-sensor-detail}
 \end{figure}
@@ -236,42 +240,40 @@ Two experiments were conducted using the same \ac{ROS} bag as before, using the 
 With respect to the importance of the usage of \ac{NEES} test the Figure~\ref{fig:chapter3:simulation:d:no-nees-test} shows the estimation of position in X, Y, Z and $\psi$ when no \ac{NEES} test is applied. This means that all the observations are used to update the state vector. It is evident from Figure~\ref{fig:chapter3:simulation:d:no-nees-test} that without the \ac{NEES} test to filter out the measurements far from the expected, makes the EKF-SLAM algorithm inconsistent.\\
 \begin{figure}
     \centering
-    \includegraphics[width=\textwidth]{Images/fig24-no-nees-test.png}
+    \includegraphics[width=0.9\textwidth]{Images/fig24-no-nees-test.png}
     \caption[EKF-SLAM behavior when NEES test is not used.]{EKF-SLAM behavior when \ac{NEES} test is not used.}
     \label{fig:chapter3:simulation:d:no-nees-test}
-\end{figure}
-
-On the other hand, the second experiment aims to find good values for the $\chi^2$ threshold, and therefore, its importance. The results presented so far have used $\chi^2$ values that corresponds to $\alpha=0.05$, therefore a 95\% of confidence that the measurements are valid. However, different results can be achieve if the threshold value changes, as shown in Figure~\ref{fig:chapter3:simulation:d:nees-10} where a value of $\alpha=0.9$, which corresponds of a confidence of 10\% that the measurements are valid, is shown.\\
-\begin{figure}
     \centering
     \includegraphics[width=0.9\textwidth]{Images/fig24-nees-10-path.png}
     \caption[EKF-SLAM behavior when $\chi_{\alpha=0.9}^2$]{EKF-SLAM behavior when $\chi_{\alpha=0.9}^2$ corresponding of a 10\% of valid observations.}
     \label{fig:chapter3:simulation:d:nees-10}
 \end{figure}
 
+On the other hand, the second experiment aims to find good values for the $\chi^2$ threshold, and therefore, its importance. The results presented so far have used $\chi^2$ values that corresponds to $\alpha=0.05$, therefore a 95\% of confidence that the measurements are valid. However, different results can be achieve if the threshold value changes, as shown in Figure~\ref{fig:chapter3:simulation:d:nees-10} where a value of $\alpha=0.9$, which corresponds of a confidence of 10\% that the measurements are valid, is shown.\\
+
 This change produces an increment in the discarded observations, as it can be seen in Figure~\ref{fig:chapter3:simulation:d:nees-95-discarded-markers} and Figure~\ref{fig:chapter3:simulation:d:nees-10-discarded-markers} for markers. As shown in Figure~\ref{fig:chapter3:simulation:d:nees-10-discarded-markers} the issue commented in Section~\ref{subsubsec:chapter3:simulation:b:results} around seconds 130 and 150 has vanished because those accepted measurements are discarded with the new configuration.\\
 \begin{figure}
     \centering
-    \includegraphics[width=\textwidth]{Images/fig24-nees-95-path-discarded-markers.png}
+    \includegraphics[width=0.9\textwidth]{Images/fig24-nees-95-path-discarded-markers.png}
     \caption[Discarded marker observations when $\chi_{\alpha=0.05}^2$]{Discarded marker observations when $\chi_{\alpha=0.05}^2$ corresponding of a 95\% of valid observations.}
     \label{fig:chapter3:simulation:d:nees-95-discarded-markers}
     \centering
-    \includegraphics[width=\textwidth]{Images/fig24-nees-10-path-discarded-markers.png}
+    \includegraphics[width=0.9\textwidth]{Images/fig24-nees-10-path-discarded-markers.png}
     \caption[Discarded marker observations when $\chi_{\alpha=0.9}^2$]{Discarded marker observations when $\chi_{\alpha=0.9}^2$ corresponding of a 10\% of valid observations.}
     \label{fig:chapter3:simulation:d:nees-10-discarded-markers}
 \end{figure}
 
-Similarly, the noisy Octomap measurements and the wrong corrections can be overcome thanks to the \ac{NEES} test. This way, the $\chi^2$ value for one degree of freedom can be reduced in order to accept measurements that are more correlated to those estimated by the filter, hence discarding those noisy Octomap measurements. This procedure can be seen in Figure~\ref{fig:chapter3:simulation:c:range-sensor-chi2}, and the detail in Figure~\ref{fig:chapter3:simulation:c:range-sensor-detail-chi2}. In these plots an acceptance of 0.9 was used, and as shown the discarded measurements are more than in the ones shown in Figure~\ref{fig:chapter3:simulation:c:range-sensor}.\\
 \begin{figure}
     \centering
-    \includegraphics[width=\textwidth]{Images/fig23-laser-chi2.png}
+    \includegraphics[width=0.9\textwidth]{Images/fig23-laser-chi2.png}
     \caption[Accepted and discarded range sensor observations when $\chi_{\alpha=0.9}^2$]{Accepted (top) and discarded (bottom) range sensor observations when $\chi_{\alpha=0.9}^2$ corresponding of a 10\% of valid observations.}
     \label{fig:chapter3:simulation:c:range-sensor-chi2}
     \centering
-    \includegraphics[width=\textwidth]{Images/fig23-laser-chi2-detail.png}
+    \includegraphics[width=0.9\textwidth]{Images/fig23-laser-chi2-detail.png}
     \caption{Detail of accepted and discarded range sensor observations when $\chi_{\alpha=0.9}^2$}
     \label{fig:chapter3:simulation:c:range-sensor-detail-chi2}
 \end{figure}
+Similarly, the noisy Octomap measurements and the wrong corrections can be overcome thanks to the \ac{NEES} test. This way, the $\chi^2$ value for one degree of freedom can be reduced in order to accept measurements that are more correlated to those estimated by the filter, hence discarding those noisy Octomap measurements. This procedure can be seen in Figure~\ref{fig:chapter3:simulation:c:range-sensor-chi2}, and the detail in Figure~\ref{fig:chapter3:simulation:c:range-sensor-detail-chi2}. In these plots an acceptance of 0.9 was used, and as shown the discarded measurements are more than in the ones shown in Figure~\ref{fig:chapter3:simulation:c:range-sensor}.\\
 
 
 

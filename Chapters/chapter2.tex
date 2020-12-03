@@ -1,6 +1,6 @@
 \chapter{EKF-SLAM Implementation}
 \label{ch:chapter2}
-In Chapter~\ref{ch:chapter1} the EKF-SLAM algorithm in the context of \ac{SLAM} was explained. As mentioned in Section~\ref{sec:chapter1:kf}, the algorithm can be summarized in two steps: prediction and correction. The first stage involves the prediction of the next state of the system, meanwhile, during the correction stage this estimation is updated. However, differently from the Algorithm~(\ref{alg:chapter1:slam:ekfslam}), the proposed implementation adds a \ac{NEES} test with th objective of improving the consistency of the filter. The updated version of the algorithm can be seen in Algorithm~(\ref{alg:chapter2:implementation:ekfslam}).\\
+In Chapter~\ref{ch:chapter1} the EKF-SLAM algorithm in the context of \ac{SLAM} was explained. As mentioned in Section~\ref{sec:chapter1:kf}, the algorithm can be summarized in two steps: prediction and correction. The first stage involves the prediction of the next state of the system, meanwhile, during the correction stage this estimation is updated. However, differently from the Algorithm~(\ref{alg:chapter1:slam:ekfslam}), the proposed implementation adds a \ac{NEES} test with the objective of improving the consistency of the filter. The updated version of the algorithm can be seen in Algorithm~(\ref{alg:chapter2:implementation:ekfslam}).\\
 \begin{algorithm}[h]
     \caption{EKF-SLAM algorithm with NEES test}
     \label{alg:chapter2:implementation:ekfslam}
@@ -99,7 +99,7 @@ The drone was equipped with several sensors that are the input for localization,
 
 The localization and mapping algorithm makes use, in an indirect way, of monocular and stereo cameras, and range sensors. Four cameras were mounted in order to be able to have 360 range view, with cameras mounted every 90 degrees. Furthermore, two stereo cameras were mounted, one points forward in order to update the Octomap and the other points downwards in order to see the markers; Also, both of them are used to build a 3-dimensional map, used for obstacle avoidance and with the height estimation algorithm. Furthermore, eight range sensors were mounted every 45 degrees, and one PIX4Flow optical flow camera points downwards in order to measure the distance to the ground.
 
-\subsection{Reference Frames}
+\subsection{Reference frames}
 \label{subsec:chapter2:drone:frames}
 This system is composed by three reference frames linked with each other, as represented in Figure~\ref{fig:chapter2:drone:frames:frames}: \emph{map}, \emph{odom} and \emph{base\_link}. The \emph{map} frame, also called \emph{world} or \emph{global} frame, is the static reference frame, where the global drone's position and global markers' position is set. The odom reference frame is similar to the map frame, but the difference is that this frame drifts with time, as happens with the pure odometry. Finally, the base\_link frame, also referred as \emph{body} or \emph{local} frame, refers to the center of mass of the drone.\\
 
@@ -111,14 +111,14 @@ As mentioned before, all transformations within these reference frames are publi
     \label{fig:chapter2:drone:frames:frames}
 \end{figure}
 
-Finally, there is a transformation that worth mentioning: the \ac{NED} to \ac{ENU}. As mentioned in Section~\ref{sec:chapter1:ros}, \ac{ROS} uses the \ac{ENU} convention, while the convention adopted by the Aerospace community is the \ac{NED}. Also, as mentioned in Section~\ref{sssec:chapter2:drone:mavlink}, MAVROS is in charge of doing and publish this transformation. In Figure~\ref{fig:chapter2:drone:frames:enu2ned} a simple scheme of the transformation can be seen. As explained before, this transform consists on rotating the X-axis and the Y-axis by 90 degrees, hence the homogeneous rotation matrix will have the following form:
+Finally, there is a transformation that is worth mentioning: the \ac{NED} to \ac{ENU}. As mentioned in Section~\ref{sec:chapter1:ros}, \ac{ROS} uses the \ac{ENU} convention, while the convention adopted by the Aerospace community is the \ac{NED}. Also, as mentioned in Section~\ref{sssec:chapter2:drone:mavlink}, MAVROS is in charge of doing and publish this transformation. In Figure~\ref{fig:chapter2:drone:frames:enu2ned} a simple scheme of the transformation can be seen. As explained before, this transform consists on rotating the X-axis and the Y-axis by 90 degrees, hence the homogeneous rotation matrix will have the following form:
 \begin{align}
     R_{ENU}^{NED} & = \begin{bmatrix}
         0 & -1 & 0 & 0 \\
         0 & 0 & 1 & 0 \\
         -1 & 0 & 0 & 0 \\
         0 & 0 & 0 & 1
-    \end{bmatrix}
+    \end{bmatrix}~~.
 \end{align}
 
 
@@ -131,11 +131,11 @@ Finally, there is a transformation that worth mentioning: the \ac{NED} to \ac{EN
 
 \section{Motion Model}
 \label{sec:chapter2:prediction}
-During the prediction step, the motion model and the covariance matrix update are computed. The motion model will update the state vector, which will store the position X, Y and Z in the global reference frame, and the orientation in the Z-axis of the drone. Fortunately MAVROS provides a node that makes odometry estimation based on different sensors outputs. The messages published by the odometry node, of type \inlinesrc{Odometry}, provide the linear velocity, the angular velocity and pose information. The velocity information is used to estimate the position in X, Y and Z, and the drone's orientation along the Z-axis. However, the velocity estimation provided by MAVROS is relative to the body reference frame, and this has to be transformed into the world reference frame, so before estimating the global position of the drone it is mandatory to do this transformation.
+During the prediction step, the motion model and the covariance matrix update are computed. The motion model will update the state vector, which will store the position X, Y and Z in the global reference frame, and the orientation in the Z-axis of the drone. MAVROS provides a node that makes odometry estimation based on different sensors outputs. The messages published by the odometry node, of type \inlinesrc{Odometry}, provide the linear velocity, the angular velocity and pose information. The velocity information is used to estimate the position in X, Y and Z, and the drone's orientation along the Z-axis. However, the velocity estimation provided by MAVROS is relative to the body reference frame, and this has to be transformed into the world reference frame, so, before estimating the global position of the drone, it is mandatory to do this transformation.
 
 \begin{align}
-    u &= \begin{bmatrix} v_x^b & v_y^b & v_z^b & \omega_x^b & \omega_y^b & \omega_z^b & \phi^b & \theta^b & \psi^b \end{bmatrix}^T\\
-    v^w &= \textbf{T} * \begin{bmatrix} v_x^b \\ v_y^b \\ v_z^b \end{bmatrix}
+    u &= \begin{bmatrix} v_x^b & v_y^b & v_z^b & \omega_x^b & \omega_y^b & \omega_z^b & \phi^b & \theta^b & \psi^b \end{bmatrix}^T~~,\\
+    v^w &= \textbf{T} * \begin{bmatrix} v_x^b \\ v_y^b \\ v_z^b \end{bmatrix}~~,
 \end{align}
 where the control vector $u$ is composed by the linear velocities in the body reference frame ($v_x^b$, $v_y^b$, $v_z^b$), the angular velocities in the body reference frame ($\omega_x^b$, $\omega_y^b$, $\omega_z^b$) and the drone's orientation ($\phi^b$, $\theta^b$, $\psi^b$). Additionally, $\textbf{T}$ is the homogeneous transform (see Section~\ref{sec:chapter1:transform}) using the current orientation of the drone: $\phi^b$, $\theta^b$ and $\mu_{\psi}$. Notice the third element of the orientation ($\mu_{\psi}$), this is because the orientation over the Z-axis is estimated by the filter. As result, $v^w$ will be a column vector with the linear velocities in the global reference frame. \\
 
@@ -145,8 +145,8 @@ Given this, the motion model update can be summarized in the following calculati
     \begin{bmatrix}
         \mu_{t-1, x^w} \\ \mu_{t-1, y^w} \\ \mu_{t-1, z^w}
     \end{bmatrix}
-    + \Delta t * v^w \\
-    \hat\mu_{\psi} &= \mu_{t-1, \psi} + \Delta t * \omega_z^b
+    + \Delta t * v^w ~~, \\
+    \hat\mu_{\psi} &= \mu_{t-1, \psi} + \Delta t * \omega_z^b~~.
 \end{align}
 
 Then, $\textbf{G}_t$, which is the Jacobian matrix of the motion model, should be computed. As mentioned in Section~\ref{subsec:chapter1:slam:ekfslam}, it has the following characteristic:
@@ -154,52 +154,51 @@ Then, $\textbf{G}_t$, which is the Jacobian matrix of the motion model, should b
     G_t &= \begin{bmatrix}
         G_r & \textbf{0} \\
         \textbf{0} & \textbf{I}
-    \end{bmatrix}\\
+    \end{bmatrix}~~,\\
     G_r &= \begin{bmatrix}
         1 & 0 & 0 & G_{r, 14} \\
         0 & 1 & 0 & G_{r, 24} \\
         0 & 0 & 1 & 0 \\
         0 & 0 & 0 & 1
-    \end{bmatrix}
+    \end{bmatrix}~~,
 \end{align}
 \begin{align*}
-     G_{r, 14} &= -\Delta t * (v_y^w * (c_{\phi} * c_{\psi} + s_{\theta} * s_{\phi} * s_{\psi}) - v_z^w * (c_{\psi} * s_{\phi} - c_{\phi} * s_{\theta} * s_{\psi}) + v_x^w * c_{\theta} * s_{\psi}) \\
-     G_{r, 24} &= -\Delta t * (v_z^w * (c_{\psi} * s_{\phi} + c_{\phi} * s_{\theta} * c_{\psi}) -v_y^w * (c_{\phi} * s_{\psi} - s_{\theta} * s_{\phi} * c_{\psi}) + v_x^w * c_{\theta} * s_{\psi})
+     G_{r, 14} &= -\Delta t (v_y^w (c_{\phi} * c_{\psi} + s_{\theta} * s_{\phi} * s_{\psi}) - v_z^w (c_{\psi} * s_{\phi} - c_{\phi} * s_{\theta} * s_{\psi}) \\
+               & \quad + v_x^w (c_{\theta} * s_{\psi}))~~, \\
+     G_{r, 24} &= -\Delta t (v_z^w (c_{\psi} * s_{\phi} + c_{\phi} * s_{\theta} * c_{\psi}) -v_y^w (c_{\phi} * s_{\psi} - s_{\theta} * s_{\phi} * c_{\psi}) \notag\\
+               & \quad + v_x^w (c_{\theta} * s_{\psi}))~~,
 \end{align*}
 where
 \begin{alignat*}{3}
-    c_{\phi} &= \cos{\left(u_{\phi}\right)}, \quad & c_{\theta} &= \cos{\left(u_{\theta}\right)}, \quad & c_{\psi} &= \cos{\left(\mu_{\psi}\right)} \\
-    s_{\phi} &= \sin{\left(u_{\phi}\right)}, \quad & s_{\theta} &= \sin{\left(u_{\theta}\right)}, \quad & s_{\psi} &= \sin{\left(\mu_{\psi}\right)}
+    c_{\phi} &= \cos{\left(u_{\phi}\right)}, \quad & c_{\theta} &= \cos{\left(u_{\theta}\right)}, \quad & c_{\psi} &= \cos{\left(\mu_{\psi}\right)},\\
+    s_{\phi} &= \sin{\left(u_{\phi}\right)}, \quad & s_{\theta} &= \sin{\left(u_{\theta}\right)}, \quad & s_{\psi} &= \sin{\left(\mu_{\psi}\right)}.
 \end{alignat*}\\
 The function $g$ that models the motion of the drone is assumed to be perfect and therefore noise free. So, before computing the covariance update, it is necessary to compute the process noise covariance matrix ($R_t$) that encodes the motion model noise which, in this case, is related to the underlying dynamics of the drone flight. The noise is assumed to be additive and Gaussian, and therefore, the motion model can be decomposed as:
-\begin{equation}
-    x_t = g(u_t, x_{t-1}) + \mathcal{N}\left(0, R_t\right)
-    \label{eq:chapter2:prediction:motion_w_noise}
-\end{equation}
-\begin{equation}
-    R_t = N * U * N^T
+\begin{align}
+    x_t = g(u_t, x_{t-1}) + \mathcal{N}\left(0, R_t\right)~~,
+    \label{eq:chapter2:prediction:motion_w_noise}\\
+    R_t = N * U * N^T~~,
     \label{eq:chapter2:prediction:control_cov}
-\end{equation}
+\end{align}
 the noise part in equation (\ref{eq:chapter2:prediction:motion_w_noise}) relates to the acceleration component that is, in this case, unknown. However, it is known from a theoretical perspective: the acceleration component in an accelerated movement is $\frac{1}{2}\Delta t^2 a$, where $a$ is the body's acceleration. Given this, we can assume that the noise component in the motion model is:
 \begin{equation}
     \mathcal{N}\left(0, R_t\right) = \frac{1}{2} \Delta t^2 T_w^b \begin{bmatrix}
         a_x \\ a_y \\ a_z \\ a_{\psi}
-    \end{bmatrix}
+    \end{bmatrix}~~,
 \end{equation}
 where $T_w^b$ is the transformation matrix from body to world reference frame. The covariance of the process noise ($R_t$) can be decompose as shown in equation~(\ref{eq:chapter2:prediction:control_cov}), where matrix $N$ is the Jacobian of acceleration term  with respect to the state vector, and matrix $U$ is the estimated average acceleration.
-\begin{equation}
-    N = \frac{\partial \frac{1}{2} \Delta t^2 T_w^b \textbf{a}}{\partial \mu}
-\end{equation}
-\begin{equation}
-    U = \textbf{I} * \begin{bmatrix}
+\begin{align}
+    N &= \frac{\partial \frac{1}{2} \Delta t^2 T_w^b \textbf{a}}{\partial \mu}~~,\\
+    U &= \textbf{I} * \begin{bmatrix}
         a_{avg, x} \\ a_{avg, y} \\ a_{avg, z} \\ a_{avg, \psi}
-    \end{bmatrix}
-\end{equation}
+    \end{bmatrix}~~.
+\end{align}
+
 The multiplication in equation (\ref{eq:chapter2:prediction:control_cov}) provides an approximate mapping between the motion noise in control space and the motion noise in the state space.\\
 
 Finally, the covariance update should be computed as follow
 \begin{align}
-    \hat\Sigma &= G_t * \Sigma * G_t^T + R_t
+    \hat\Sigma &= G_t * \Sigma * G_t^T + R_t~~.
 \end{align}
 
 \section{Observation Models}
@@ -214,7 +213,7 @@ To perform the correction step, EKF-SLAM needs a linearized observation model wi
 
 The observation model is, as with the motion model in equation~(\ref{eq:chapter2:prediction:motion_w_noise}), assumed to be perfect and with an additive Gaussian noise. The noise here is related to the observation process, and so, related to the used sensors.
 \begin{equation}
-    z_i = h_i\left(x_t\right) + \mathcal{N}\left(0, Q_t\right)
+    z_i = h_i\left(x_t\right) + \mathcal{N}\left(0, Q_t\right)~~.
     \label{eq:chapter2:correction:obs_w_noise}
 \end{equation}
 Consequently, the noise covariance matrix of the observation model cannot be deducted as with the noise covariance matrix of the motion model. In this case, the matrix should be constructed empirically based on the sensors' characteristics, and it has the following characteristic:
@@ -223,7 +222,7 @@ Consequently, the noise covariance matrix of the observation model cannot be ded
         \sigma_1^2 &  & \textbf{0} \\
          & \ddots & \\
         \textbf{0} & & \sigma_n^2 \\
-    \end{bmatrix}
+    \end{bmatrix}~~,
 \end{equation}\\
 where the diagonal elements $\sigma_{1..n}$ are the standard deviation of the sensor. Depending on the sensor used, the diagonal elements can be the standard deviation for the range and bearing components (distance, azimuth and elevation), or others.\\
 
@@ -234,24 +233,22 @@ As shown in Algorithm~(\ref{alg:chapter1:slam:ekfslam}) and Algorithm~(\ref{alg:
 In the case of Poles, a range and bearing method is used. In this case, since the poles have a known position, their information is not kept in the state vector and therefore, this information will be used for localization purposes.\\
 
 A \ac{ROS} node will publish the range and bearing information every time the drone sees a pole, and this information will be used to calculate the innovation based on the predicted range and bearing. Hence, the observation model used for poles is computed in the following way:
-\begin{equation}
+\begin{align}
     \begin{bmatrix}
         p_{i, x}^b \\ p_{i, y}^b \\ p_{i, z}^b
-    \end{bmatrix} = \bm{T_r}^{-1} \begin{bmatrix}
+    \end{bmatrix} &= \bm{T_r}^{-1} \begin{bmatrix}
         p_{i, x}^w \\ p_{i, y}^w \\ p_{i, z}^w
-\end{bmatrix}
-\label{eq:chapter2:correction:pole:world2body_transform}
-\end{equation}
-\begin{equation}
+    \end{bmatrix}~~,
+    \label{eq:chapter2:correction:pole:world2body_transform}\\
     h_i(\hat\mu_t) = \begin{bmatrix}
         p_{i, \rho} \\ p_{i, \alpha} \\ p_{i, \beta}
-    \end{bmatrix} = \begin{bmatrix}
+    \end{bmatrix} &= \begin{bmatrix}
     \sqrt{ p_{j, x^b}^2 + p_{j, y^b}^2 } \\
     \atantwo{p_{j, y}^b}{p_{j, x}^b} \\
     \atantwo{p_{j, z}^b}{p_{j,\rho}^b}
-\end{bmatrix}
+\end{bmatrix}~~.
 \label{eq:chapter2:correction:pole:range_bearing}
-\end{equation}
+\end{align}
 
 In equation~(\ref{eq:chapter2:correction:pole:world2body_transform}), $\bm{T_r}^{-1}$ corresponds to the inverse of the homogeneous transformation matrix with respect to the current drone's pose, and elements $p_i^w$ are the $x$, $y$ and $z$ coordinates of the $i$ pole's tip in the world reference frame. This way, the global position of the pole $i$ is projected to the body reference frame. After that, the range ($\rho$), azimuth angle ($\alpha$) and elevation angle ($\beta$) are calculated, as shown in equation~(\ref{eq:chapter2:correction:pole:range_bearing}). In Figure~\ref{fig:chapter2:correction:poles:range_bearing} an example of the range and bearing is shown.
 \begin{figure}[h]
@@ -267,7 +264,7 @@ Observing a pole affects only the drone's pose, and therefore, the Jacobian matr
         \frac{\partial \rho'}{\partial \mu_x} & \frac{\partial \rho'}{\partial \mu_y} & \frac{\partial \rho'}{\partial \mu_z} & \frac{\partial \rho'}{\partial \mu_{\psi}} & \dots & 0 \\
         \frac{\partial \alpha'}{\partial \mu_x} & \frac{\partial \alpha'}{\partial \mu_y} & \frac{\partial \alpha'}{\partial \mu_z} & \frac{\partial \alpha'}{\partial \mu_{\psi}} & \dots & 0 \\
         \frac{\partial \beta'}{\partial \mu_x} & \frac{\partial \beta'}{\partial \mu_y} & \frac{\partial \beta'}{\partial \mu_z} & \frac{\partial \beta'}{\partial \mu_{\psi}} & \dots & 0
-    \end{bmatrix}
+    \end{bmatrix}~~,
 \end{equation}
 where $\rho'$ corresponds to the distance part of the observation model, $\alpha'$ is the azimuth part, and $ \beta'$ the elevation part. The elements after the \nth{4} column are all 0, which means, as said before, that the observation of a pole will not affect the pose of the markers.
 
@@ -283,11 +280,11 @@ The observation model for the markers is a bit different. In this case a \ac{ROS
     \label{fig:chapter2:correction:markers:example}
 \end{figure}
 
-Every time the camera that points down sees a known marker, the \inlinesrc{visp_auto_tracker} node will publish the pose of that marker. This published pose is with respect to the camera which is not positioned at the drone's center of mass and so, a different transformation is needed. This process can be seen in equation~(\ref{eq:chapter2:correction:markers:world2body_trasnform}), in which the transformation of the marker's pose in the world reference frame is transformed to the pose in the camera reference frame.
+Every time the camera that points down sees a known marker, the node \inlinesrc{visp_auto_tracker} will publish the pose of that marker. This published pose is with respect to the camera which is not positioned at the drone's center of mass and so, a different transformation is needed. This process can be seen in equation~(\ref{eq:chapter2:correction:markers:world2body_trasnform}), in which the transformation of the marker's pose in the world reference frame is transformed to the pose in the camera reference frame.
 \begin{equation}
     \begin{bmatrix}
         m_{i, x}^c \\ m_{i, y}^c \\ m_{i, z}^c \\ m_{i, \phi}^c \\ m_{i, \theta}^c \\ m_{i, \psi}^c
-    \end{bmatrix} = (\bm{T_r} * \bm{T_c})^{-1} * \bm{T_m}
+    \end{bmatrix} = (\bm{T_r} * \bm{T_c})^{-1} * \bm{T_m}~~,
     \label{eq:chapter2:correction:markers:world2body_trasnform}
 \end{equation}
 where, $\bm{T_r}$ is the homogeneous transformation matrix of the drone's pose, $\bm{T_c}$ is the homogeneous transformation matrix of the camera's pose, and $\bm{T_m}$ is the homogeneous transformation of the marker's pose. The result is a vector that contains the marker's pose in the camera reference frame.\\
@@ -296,7 +293,7 @@ As mentioned before, observing a marker will update the drone's pose and that ma
 \begin{align}
     H_i &= \begin{bmatrix}
         \frac{\partial h_i(\hat\mu)}{\partial \mu_r} & \dots0\dots & \frac{\partial h_i(\hat\mu)}{\partial \mu_{m_i}} & \dots0\dots
-    \end{bmatrix}
+    \end{bmatrix}~~.
     \label{eq:chater2:correction:markers:jacobian}
 \end{align}
 
@@ -311,7 +308,7 @@ As mentioned in Section~\ref{subsec:chapter1:slam:ekfslam:addlandmarks}, to add 
 \begin{align}
     \begin{bmatrix}
         m_{i, x}^w \\ m_{i, y}^w \\ m_{i, z}^w \\ m_{i, \phi}^w \\ m_{i, \theta}^w \\ m_{i, \psi}^w
-    \end{bmatrix} &= \bm{T_r} * \bm{T_c} * \bm{T_m}
+    \end{bmatrix} &= \bm{T_r} * \bm{T_c} * \bm{T_m}~~.
     \label{eq:chapter2:correction:markers:inverseh}
 \end{align}
 
@@ -320,14 +317,14 @@ As before, $\bm{T_r}$ is the homogeneous transformation matrix of the drone's po
     \mu_t = \left[\begin{array}{c|cccccc}
         \mu_t & m_{i, x}^w & m_{i, y}^w & m_{i, z}^w & m_{i, \phi}^w & m_{i, \theta}^w & m_{i, \psi}^w
     \end{array}
-    \right]^T
+    \right]^T~~.
 \end{align*}
 
 Furthermore, the covariance matrix should be updated in order to contain the newly added marker. As shown in equation~\ref{eq:chapter1:slam:ekfslam:cov_update}, the Jacobian of the inverse observation model with respect to the drone's state and the Jacobian of the inverse observation model with respect to the marker's state are needed. Both Jacobian matrices can be seen in Appendix~\ref{appendix:a}. In this case, the matrix $\bm{Y_x}$ has a size of ($\norm{\mu}+6) \times (\norm{\mu})$ where $\norm{\mu}$ is the size of the state vector before adding the projected pose of the seen marker. On the other hand, the matrix $\bm{Y_z}$ has a size of $(\norm{\mu}+6) \times 6$. Given these two matrices, the new covariance matrix $\Sigma$ will be increased by 6 columns and 6 rows and will have the following form:
 \begin{align*}
     \Sigma = \begin{bmatrix}
         \Sigma_{r,r} & \Sigma_{r,m} \\ \Sigma_{r,m} & \Sigma_{m,m}
-    \end{bmatrix}
+    \end{bmatrix}~~,
 \end{align*}
 where $\Sigma_{r,r}$ is the covariance matrix between the drone's state variables, the $\Sigma_{r,m}$ and $\Sigma_{m,r}$ is the covariance matrix between the drone and the markers' state variables, and between the markers and the drone's state variables, and $\Sigma_{m,m}$ is the covariance matrix between markers' state variables.
 
@@ -337,11 +334,11 @@ With respect to the height estimation, it is corrected by poles, markers and wit
 
 The Octomap is build with obstacle avoidance in mind, but it can be used jointly with the optical flow to correct the drone's Z position. To do so, the it can be assumed that the range sensor provided by the PIX4Flow camera, plus the Octomap voxel height below the camera should be equal to the drone's height. Hence, the range sensor model can be defined as:
 \begin{equation}
-    h\left(\hat\mu_t\right) = \hat\mu_z + bias
+    h\left(\hat\mu_t\right) = \hat\mu_z + bias~~,
 \end{equation}
 and the observation is defined by:
 \begin{equation}
-    \hat{z} = voxel_z + range_{distance}
+    \hat{z} = voxel_z + range_{distance}~~,
 \end{equation}
 where $voxel_z$ is the Z position of the voxel below the drone, and $range_{distance}$ is the sensed distance provided by the range sensor.\\
 
@@ -349,13 +346,13 @@ Hopefully, the Jacobian is a vector composed by zeroes except for the component 
 \begin{equation}
     H = \begin{bmatrix}
         0 & 0 & 1 & \dots0\dots
-    \end{bmatrix}
+    \end{bmatrix}~~.
 \end{equation}
 
 Since the observation model is composed by a single variable, the Jacobian is a row vector of the size of the current state vector.
 
 
-\section{Visual process pipeline}
+\section{Visual Process Pipeline}
 \label{sec:chapter2:visual}
 As mentioned in Section~\ref{sec:chapter2:drone}, the drone is composed by several cameras, specifically, two stereo cameras and four monocular cameras. These cameras are used to identify and avoid obstacles and for localization purposes. The localization process involves the identification of poles and markers, and therefore, the usage of the before mentioned cameras: the four monocular cameras are used to identify poles, while one stereo camera is used to identify the markers.
 \subsection{Visual process for Poles}
