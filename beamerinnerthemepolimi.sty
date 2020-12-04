@@ -41,33 +41,27 @@
 {
     \color{white}
     \vspace{4.25cm}
-    
+
     \begin{minipage}[t][\baselineskip]{\paperwidth}
         {\Large\bf \inserttitle}
     \end{minipage}
-    \\[\baselineskip]
+    \\
     \begin{minipage}[t][2\baselineskip]{\paperwidth}
         {\large \insertsubtitle}
     \end{minipage}
-    
-    \vfill
-    
+
     \begin{minipage}[t][\baselineskip]{\paperwidth}
-        {\large\bf \insertauthor}
+        {\large\bf{\insertauthor}} \\ \insertdate
     \end{minipage}
-    
-    \begin{minipage}[t][\baselineskip]{\paperwidth}
-        \insertdate
-    \end{minipage}
-    
+
     \vfill
-    
+
     \addtocounter{framenumber}{-1}
 }
 
 % Table of Contents.
 \setbeamertemplate{section in toc}[circle]
-\setbeamertemplate{subsection in toc}{\leavevmode \leftskip=0.7em {\color{bluePolimi} $\bullet$} \hskip1pt \inserttocsubsection\par}  
+\setbeamertemplate{subsection in toc}{\leavevmode \leftskip=0.7em {\color{bluePolimi} $\bullet$} \hskip1pt \inserttocsubsection\par}
 
 % Section page.
 \defbeamertemplate*{section page}{polimi}{
