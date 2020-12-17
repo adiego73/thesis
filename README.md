@@ -1,7 +1,7 @@
 ## A ROS implementation of a 6-DoF EKF for indoor drone visual SLAM
 
 The current work is part of the final Thesis for my MSc. in Computer Science & Engineering @ Politecnico di Milano (Dec. 2020).
-The final document can be found [here](A ROS implementation of a 6-DoF EKF for indoor drone Visual SLAM.pdf), and the final presentation can be found [here](Presentation.pptx)
+The final document can be found [here]("A ROS implementation of a 6-DoF EKF for indoor drone Visual SLAM.pdf"), and the final presentation can be found [here](Presentation.pptx)
  * **Advisor**: Prof. Matteo Matteucci.
  * **Co-Advisor**: Ing. Simone Mentasti.
 
