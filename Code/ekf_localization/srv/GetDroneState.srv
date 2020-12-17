@@ -1,0 +1,4 @@
+#request fields
+---
+#response fields
+geometry_msgs/Pose pose

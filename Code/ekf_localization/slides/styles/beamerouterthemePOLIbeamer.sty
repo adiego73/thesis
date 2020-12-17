@@ -1,0 +1,47 @@
+\mode<presentation>
+
+% ------   Title for frames   ------
+
+\defbeamertemplate*{frametitle}{POLIbeamer}
+{%
+      \begin{flushright}
+      \insertframetitle%
+      \end{flushright}
+}
+
+
+% ------   Page numbers   ------
+
+\defbeamertemplate{headline}{page number}
+{%
+  % I want to skip the title slide, so I use an "if" on the frame number
+  \ifnum\c@framenumber=1%
+
+  \else%
+
+    \vskip4pt%
+    \setbeamercolor{page number in head/foot}{fg=white}
+    \setbeamertemplate{footline}[page number]%
+    \usebeamertemplate{footline}%
+
+  \fi%
+}
+
+\setbeamertemplate{headline}[page number]
+
+
+% ------   Section and author   ------
+
+\defbeamertemplate{footline}{my header}{%
+%%\vskip1pt%
+  \hspace{1.5mm}
+  \makebox[0pt][l]{\,{\scriptsize \color{white}\insertsection}}%
+  \hspace*{\fill}%
+  \llap{\scriptsize \color{white} \insertauthor}
+  \hspace{1.5mm}
+  \vspace{1.2mm}
+}
+\setbeamertemplate{footline}[my header]
+
+
+\mode<all>

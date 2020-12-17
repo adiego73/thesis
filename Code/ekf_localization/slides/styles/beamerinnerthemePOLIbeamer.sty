@@ -1,0 +1,80 @@
+\mode<presentation>
+
+% Supervisor(s): title and name(s)
+%\let\insertsupervisor\relax
+\let\insertsupervisortext\relax
+\newcommand{\supervisortext}[1]{\def\insertsupervisortext{#1}}
+\newcommand{\supervisor}[1]{\def\insertsupervisor{#1}}
+
+% Backgrounds images
+\setbeamertemplate{background}{
+
+  % Title page
+  \ifnum\c@framenumber=1%
+
+    \begin{picture}(0,109) % (0, 120)
+      \includegraphics[width=\paperwidth]{styles/eps/headerTitlePOLIMI.eps}
+    \end{picture}
+
+  % All the other frames
+  \else%
+
+    \begin{picture}(0,273.6)
+      \includegraphics[width=\paperwidth]{styles/eps/pageBackground.eps}
+    \end{picture}
+
+  \fi%
+
+}
+
+
+% Title page
+\defbeamertemplate*{title page}{POLIbeamer}[1][]
+{
+   \vskip4.3cm%
+    \begin{beamercolorbox}[wd=11cm,leftskip=0.5cm,#1]{title page header}
+      {\huge \inserttitle} \\ {\small \insertsubtitle}
+    \end{beamercolorbox}%
+%    \vskip0.75cm%
+    \vfill
+
+    \begin{columns}
+      \begin{column}{0.5\textwidth}
+
+        \vskip0.4cm%
+        \begin{beamercolorbox}[wd=12cm,leftskip=1.3cm,#1]{supervisortxt}
+          {\it \insertsupervisortext}
+        \end{beamercolorbox}
+        \vskip0.3cm%
+        \begin{beamercolorbox}[wd=12cm,leftskip=1.6cm,#1]{supervisor}
+          {\insertsupervisor }
+        \end{beamercolorbox}
+
+      \end{column}
+
+      % These columns are flushed right.
+      % I shift them to the left using hskip, placing a virtual element (a dot)
+      % so that this is right-aligned and the actual date and author are hskipped.
+      \begin{column}{0.5\textwidth}
+        \begin{flushright}
+          \usebeamerfont{author}\insertdate \hskip0.4cm $\hphantom{.}$%
+          \vskip0.2cm%
+          \usebeamerfont{author}\insertauthor \hskip0.4cm $\hphantom{.}$%
+        \end{flushright}
+      \end{column}
+    \end{columns}
+
+
+  \vfill
+}
+
+
+% ------   Table of Contents  ------
+
+\setbeamertemplate{section in toc}[circle]
+\setbeamertemplate{subsection in toc}
+  {\leavevmode \leftskip=0.7em {\color{poliBlue} $\bullet$} \hskip1pt \inserttocsubsection\par}
+%  {\leavevmode \leftskip=0.7em {\color{poliBlue} $\blacktriangleright$} \hskip1pt \inserttocsubsection\par}
+
+
+\mode<all>

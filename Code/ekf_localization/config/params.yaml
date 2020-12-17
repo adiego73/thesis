@@ -1,0 +1,40 @@
+ekf_localization_node:
+  enable_poles_subscriber: true
+  enable_markers_subscriber: true
+  enable_range_subscriber: true
+  drone_odom_topic: /drone/odom
+  markers_pose_topic: /markers/pose
+#  map_path: /home/diego/dev/ros/src/ekf_localization/maps/landmarks.map.yaml
+  initial_position_x: -3.0
+  initial_position_y: 0.0
+  initial_position_z: 0.0
+  initial_position_yaw: 0.0
+  avg_linear_vel: 0.05
+  avg_angular_vel: 0.04
+  range_noise_covariance: 0.1
+  poles_noise_covariance: [ 1, 0.0, 0.0,
+                            0.0, 0.001, 0.0,
+                            0.0, 0.0, 0.1 ]
+  markers_noise_covariance: [ 1, 0.0, 0.0, 0.0, 0.0, 0.0,
+                              0.0, 1, 0.0, 0.0, 0.0, 0.0,
+                              0.0, 0.0, 1, 0.0, 0.0, 0.0,
+                              0.0, 0.0, 0.0, 0.45, 0.0, 0.0,
+                              0.0, 0.0, 0.0, 0.0, 0.45, 0.0,
+                              0.0, 0.0, 0.0, 0.0, 0.0, 0.45 ]
+  odometry_topic: /mavros/local_position/odom
+#  odometry_topic: /gazebo/ground_truth
+  pole_landmark_topic: /pole_localization
+#  pole_landmark_topic: /fake/pole_localization
+#  marker_landmark_topic: /fake/marker_localization
+  marker_landmark_topic: /visp_auto_tracker/stamped_object_position
+  octomap_topic: /octomap_full
+  range_sensor_topic: /mavros/px4flow/ground_distance
+
+fake_pole_localization:
+  odometry_topic: /gazebo/ground_truth
+  pole_localization_topic: /fake/pole_localization
+
+fake_marker_localization:
+  odometry_topic: /gazebo/ground_truth
+  marker_localization_topic: /fake/marker_localization
+

@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<launch>
+    <!-- Load parameters -->
+    <rosparam file="$(find ekf_localization)/config/params.yaml"/>
+
+    <!-- -->
+    <include file="$(find rtabmap_ros)/launch/my_stereo_mapping_2.launch" pass_all_args="true">
+        <arg name="rviz" default="false"/>
+        <arg name="rviz_cfg" default="$(find ekf_localization)/config/my_config.rviz" />
+    </include>
+
+    <!-- nodes -->
+    <node name="ekf_localization_node" pkg="ekf_localization" type="ekf_localization_node" output="screen">
+        <param name="map_path" value="$(find ekf_localization)/maps/landmarks.map.yaml" />
+    </node>
+
+    <node name="qr_code_node" pkg="ekf_localization" type="qr_code_node" output="screen">
+    </node>
+
+</launch>

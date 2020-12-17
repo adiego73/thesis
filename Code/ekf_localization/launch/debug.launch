@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<launch>
+    <param name="use_sim_time"  value="true" />
+
+    <rosparam file="$(find ekf_localization)/config/params.yaml"/>
+
+    <arg name="path" default="$(find ekf_localization)/launch/"/>
+    <arg name="bag_file" default="move-w-rotation"/>
+    <arg name="rviz" default="false" />
+    <arg name="rviz_cfg" default="$(find ekf_localization)/config/debug.rviz" />
+    <arg name="record_path" default="$(find ekf_localization)/rosbags/" />
+    <arg name="prefix" default="auto" />
+    <arg name="topics" default="/gazebo/ground_truth /drone/odom /mavros/px4flow/ground_distance /mavros/local_position/odom" />
+    <arg name="record_bag" default="false" />
+    <arg name="duration" default="-u 363" />
+
+    <node pkg="tf" type="static_transform_publisher" name="world_frame" args="0 0 0 0 0 0 1 map world 100" />
+
+    <node if="$(arg rviz)" pkg="rviz" type="rviz" name="rviz" args="-d $(arg rviz_cfg)"/>
+
+    <node pkg="rosbag" type="play" name="player" output="screen" args="--clock $(arg path)$(arg bag_file).bag "/>
+    <node if="$(arg record_bag)" pkg="rosbag" type="record" name="recorder" output="screen" args="record --duration=363 -o $(arg record_path)$(arg prefix) $(arg topics) "/>
+
+    <node name="ekf_localization_node" pkg="ekf_localization" type="ekf_localization_node" output="screen">
+        <param name="map_path" value="$(find ekf_localization)/maps/landmarks.map.yaml" />
+    </node>
+
+    <node name="qr_code_node" pkg="ekf_localization" type="qr_code_node">
+    </node>
+
+<!--    <node name="fake_marker_localization" pkg="ekf_localization" type="fake_marker_localization" output="screen">-->
+<!--    </node>-->
+
+<!--    <node name="fake_pole_localization" pkg="ekf_localization" type="fake_pole_localization" output="screen">-->
+<!--    </node>-->
+
+</launch>
